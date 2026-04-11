@@ -22,7 +22,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .obra-chip span{color:var(--text);font-weight:500;}
 .btn-voltar{padding:6px 14px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:12px;cursor:pointer;transition:all 0.2s;text-decoration:none;display:flex;align-items:center;gap:6px;}
 .btn-voltar:hover{border-color:var(--blue);color:var(--blue2);}
-.page{padding:80px 24px 40px;max-width:1200px;margin:0 auto;position:relative;z-index:1;}
+.page{padding:80px 24px 40px;position:relative;z-index:1;}
 .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
 .page-title{font-family:'Rajdhani',sans-serif;font-size:24px;font-weight:700;}
 .page-subtitle{font-size:12px;color:var(--text3);margin-top:2px;}
@@ -197,6 +197,27 @@ tbody tr:hover td{background:rgba(46,123,196,0.04);}
   </div>
 </div>
 
+<!-- MODAL SELEÇÃO TIPO -->
+<div class="mmodal-overlay" id="modal-tipo" style="display:none;z-index:250" onclick="if(event.target===this)fecharModalTipo()">
+  <div class="mmodal" onclick="event.stopPropagation()" style="max-width:420px;text-align:center">
+    <h3 style="margin-bottom:6px">Novo fornecedor</h3>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:24px">Selecione o tipo. Esta escolha não poderá ser alterada sem reiniciar o cadastro.</p>
+    <div style="display:flex;gap:12px">
+      <button onclick="confirmarTipo('PJ')" style="flex:1;padding:20px 12px;border:2px solid var(--border);border-radius:12px;background:var(--navy);cursor:pointer;transition:all 0.2s;color:var(--text2)" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">
+        <div style="font-size:32px;margin-bottom:8px">🏗️</div>
+        <div style="font-family:Rajdhani,sans-serif;font-size:15px;font-weight:600">Pessoa Jurídica</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">Empresa / CNPJ</div>
+      </button>
+      <button onclick="confirmarTipo('PF')" style="flex:1;padding:20px 12px;border:2px solid var(--border);border-radius:12px;background:var(--navy);cursor:pointer;transition:all 0.2s;color:var(--text2)" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">
+        <div style="font-size:32px;margin-bottom:8px">👤</div>
+        <div style="font-family:Rajdhani,sans-serif;font-size:15px;font-weight:600">Pessoa Física</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">Autônomo / CPF</div>
+      </button>
+    </div>
+    <button class="btn-cancelar" onclick="fecharModalTipo()" style="margin-top:16px;width:100%">Cancelar</button>
+  </div>
+</div>
+
 <!-- DRAWER -->
 <div class="drawer-overlay" id="drawer" onclick="if(event.target===this)fecharDrawer()">
   <div class="drawer" onclick="event.stopPropagation()">
@@ -207,9 +228,9 @@ tbody tr:hover td{background:rgba(46,123,196,0.04);}
     <div class="alerta-modal" id="alerta-modal"></div>
     <div class="drawer-body">
       <input type="hidden" id="f-id"/>
-      <div class="tipo-toggle">
-        <button class="tipo-btn ativo" id="tipo-pj" onclick="setTipo('PJ')"><span class="tipo-icon">🏗️</span><span style="font-size:13px;font-weight:600">Pessoa Jurídica</span></button>
-        <button class="tipo-btn" id="tipo-pf" onclick="setTipo('PF')"><span class="tipo-icon">👤</span><span style="font-size:13px;font-weight:600">Pessoa Física</span></button>
+      <!-- Tipo fixado no momento da criação — exibido como badge -->
+      <div id="tipo-badge-wrap" style="padding:16px 24px 0;display:flex;align-items:center;gap:10px">
+        <span id="tipo-badge-display" style="font-size:13px;color:var(--text2)"></span>
       </div>
       <div class="tabs">
         <button class="tab-btn ativo" onclick="mudarTab('dados',this)">Dados principais</button>
@@ -405,6 +426,42 @@ tbody tr:hover td{background:rgba(46,123,196,0.04);}
   </div>
 </div>
 
+<!-- MODAL DOC SÓCIO -->
+<div class="mmodal-overlay" id="modal-doc-socio" onclick="if(event.target===this)fecharModalDocSocio()" style="display:none;z-index:310">
+  <div class="mmodal" onclick="event.stopPropagation()" style="max-width:500px">
+    <h3 id="modal-doc-socio-titulo">Documentos do sócio</h3>
+    <input type="hidden" id="doc-socio-id"/>
+    <input type="hidden" id="doc-socio-nome"/>
+
+    <!-- Lista de docs existentes -->
+    <div id="doc-socio-lista" style="margin-bottom:16px"></div>
+
+    <!-- Upload novo doc -->
+    <div class="fsec-title" style="margin-bottom:10px">Anexar novo documento</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:14px" id="tipos-doc-socio"></div>
+    <div class="fg" style="margin-bottom:12px">
+      <label>Descrição opcional</label>
+      <input type="text" id="doc-socio-descricao" placeholder="Ex: CNH válida até 12/2026"/>
+    </div>
+    <div class="upload-area" onclick="document.getElementById('doc-socio-input').click()"
+      ondragover="event.preventDefault();this.classList.add('drag')"
+      ondragleave="this.classList.remove('drag')"
+      ondrop="event.preventDefault();this.classList.remove('drag');handleDropSocio(event)">
+      <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      <p>Clique ou arraste o arquivo aqui</p>
+      <span>PDF, JPG, PNG, DOCX — máx. 10MB</span>
+      <div class="upload-progress" id="upload-progress-socio"><div class="upload-progress-bar" id="upload-progress-bar-socio" style="width:0%"></div></div>
+    </div>
+    <input type="file" id="doc-socio-input" style="display:none" accept=".pdf,.jpg,.jpeg,.png,.docx"
+      onchange="uploadDocumentoSocioModal(this.files[0])"/>
+    <div class="mmodal-actions">
+      <button class="btn-cancelar" onclick="fecharModalDocSocio()">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL SÓCIO -->
 <div class="mmodal-overlay" id="modal-socio" onclick="if(event.target===this)fecharModalSocio()">
   <div class="mmodal" onclick="event.stopPropagation()">
@@ -547,15 +604,30 @@ async function toggleAtivo(id,ativo){
 }
 
 function abrirDrawer(id){
-  fornecedorEditando=id||null;_tipo='PJ';_pixLista=[];_sociosTemp=[];
-  limparDrawer();
-  if(id){
-    document.getElementById('drawer-titulo').textContent='Editar fornecedor';
-    const f=fornecedores.find(x=>x.id===id);
-    if(f)preencherDrawer(f);
-  }else{
-    document.getElementById('drawer-titulo').textContent='Novo fornecedor';
+  if(!id){
+    // Novo fornecedor: pede tipo primeiro
+    document.getElementById('modal-tipo').style.display='flex';
+    return;
   }
+  // Edição: abre direto
+  fornecedorEditando=id;_pixLista=[];_sociosTemp=[];
+  limparDrawer();
+  document.getElementById('drawer-titulo').textContent='Editar fornecedor';
+  const f=fornecedores.find(x=>x.id===id);
+  if(f)preencherDrawer(f);
+  document.getElementById('drawer').classList.add('aberto');
+}
+
+function fecharModalTipo(){
+  document.getElementById('modal-tipo').style.display='none';
+}
+
+function confirmarTipo(tipo){
+  fecharModalTipo();
+  fornecedorEditando=null;_pixLista=[];_sociosTemp=[];
+  limparDrawer();
+  setTipo(tipo);
+  document.getElementById('drawer-titulo').textContent='Novo fornecedor — '+( tipo==='PJ'?'Pessoa Jurídica':'Pessoa Física');
   document.getElementById('drawer').classList.add('aberto');
 }
 
@@ -600,8 +672,13 @@ async function preencherDrawer(f){
 
 function setTipo(tipo){
   _tipo=tipo;
-  document.getElementById('tipo-pj').classList.toggle('ativo',tipo==='PJ');
-  document.getElementById('tipo-pf').classList.toggle('ativo',tipo==='PF');
+  // Atualiza badge de tipo no drawer
+  const badge=document.getElementById('tipo-badge-display');
+  if(badge){
+    badge.innerHTML=tipo==='PJ'
+      ?'<span class="badge badge-pj">🏗️ Pessoa Jurídica</span>'
+      :'<span class="badge badge-pf">👤 Pessoa Física</span>';
+  }
   document.getElementById('sec-doc').textContent=tipo==='PJ'?'CNPJ':'CPF';
   document.getElementById('label-doc').textContent=tipo==='PJ'?'CNPJ *':'CPF *';
   document.getElementById('label-razao').textContent=tipo==='PJ'?'Razão social *':'Nome completo *';
@@ -609,7 +686,6 @@ function setTipo(tipo){
   document.getElementById('f-cpf-cnpj').maxLength=tipo==='PJ'?18:14;
   ['g-fantasia','g-pj-fields','g-cnae','tab-btn-socios'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=tipo==='PJ'?'':'none';});
   document.getElementById('btn-consultar').style.display=tipo==='PJ'?'':'none';
-  // Atualiza título e tipos de documento dinamicamente
   const secTitulo=document.getElementById('docs-sec-titulo');
   if(secTitulo)secTitulo.textContent=tipo==='PJ'?'DOCUMENTOS DA EMPRESA':'DOCUMENTOS PESSOAIS';
   renderTiposDoc();
@@ -788,6 +864,129 @@ async function excluirSocio(id){
   if(!confirm('Remover sócio?'))return;
   await sb.from('fornecedor_socios').delete().eq('id',id);
   await recarregarSocios();
+}
+
+// Tipos de documento predefinidos para sócios
+const TIPOS_DOC_SOCIO = [
+  {id:'rg',          label:'RG',                  icon:'🪪'},
+  {id:'cnh',         label:'CNH',                 icon:'🚗'},
+  {id:'cpf',         label:'CPF',                 icon:'📋'},
+  {id:'comp_end',    label:'Comp. Endereço',       icon:'🏠'},
+  {id:'comp_renda',  label:'Comp. Renda',          icon:'💰'},
+  {id:'passaporte',  label:'Passaporte',           icon:'✈️'},
+  {id:'procuracao',  label:'Procuração',           icon:'📝'},
+  {id:'outro',       label:'Outro',                icon:'📎'},
+];
+
+let _tipoDocSocioSel = 'rg';
+let _socioDocAtual = { id: null, nome: null };
+
+function abrirModalDocSocio(socioId, socioNome){
+  if(!fornecedorEditando){ alertaModal('Salve o fornecedor primeiro.'); return; }
+  _socioDocAtual = { id: socioId, nome: socioNome };
+  document.getElementById('doc-socio-id').value   = socioId;
+  document.getElementById('doc-socio-nome').value = socioNome;
+  document.getElementById('modal-doc-socio-titulo').textContent = 'Docs — ' + socioNome;
+  document.getElementById('doc-socio-descricao').value = '';
+  _tipoDocSocioSel = 'rg';
+
+  // Renderiza tipos de doc
+  document.getElementById('tipos-doc-socio').innerHTML = TIPOS_DOC_SOCIO.map(t =>
+    '<div class="tipo-doc-opt' + (t.id===_tipoDocSocioSel?' sel':'') + '" onclick="selecionarTipoDocSocio(''+t.id+'',this)" style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px">'+
+    '<span style="font-size:20px">'+t.icon+'</span>'+t.label+'</div>'
+  ).join('');
+
+  // Carrega docs existentes
+  carregarDocsSocioModal(socioId);
+  document.getElementById('modal-doc-socio').style.display = 'flex';
+}
+
+function selecionarTipoDocSocio(tipo, el){
+  _tipoDocSocioSel = tipo;
+  document.querySelectorAll('#tipos-doc-socio .tipo-doc-opt').forEach(e => e.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function fecharModalDocSocio(){
+  document.getElementById('modal-doc-socio').style.display = 'none';
+  // Recarrega linha do sócio na tabela
+  if(_socioDocAtual.id) carregarDocsSocio(_socioDocAtual.id);
+}
+
+function handleDropSocio(e){
+  const file = e.dataTransfer.files[0];
+  if(file) uploadDocumentoSocioModal(file);
+}
+
+async function carregarDocsSocioModal(socioId){
+  const wrap = document.getElementById('doc-socio-lista');
+  wrap.innerHTML = '<div style="font-size:12px;color:var(--text3)">Carregando...</div>';
+  const {data} = await sb.from('documentos').select('*').eq('registro_id',socioId).eq('modulo','socio').eq('ativo',true).order('criado_em',{ascending:false});
+  const lista = data||[];
+  if(!lista.length){ wrap.innerHTML='<div style="font-size:12px;color:var(--text3);padding:8px 0">Nenhum documento anexado.</div>'; return; }
+  const tipoLabel = id => TIPOS_DOC_SOCIO.find(t=>t.id===id)?.label || id;
+  wrap.innerHTML = lista.map(d=>
+    '<div class="doc-item" style="margin-bottom:6px">'+
+    '<div class="doc-icon">'+((TIPOS_DOC_SOCIO.find(t=>t.id===d.tipo)||{icon:'📎'}).icon)+'</div>'+
+    '<div class="doc-info">'+
+    '<div class="doc-nome">'+d.nome_arquivo+'</div>'+
+    '<span class="doc-tipo-badge">'+tipoLabel(d.tipo)+'</span>'+
+    (d.descricao?'<div style="font-size:11px;color:var(--text2)">'+d.descricao+'</div>':'')+'</div>'+
+    '<div class="doc-actions">'+
+    '<a href="'+urlSegura(d.drive_id,'ver')+'" target="_blank" class="btn-icon" title="Ver">👁</a>'+
+    '<a href="'+urlSegura(d.drive_id,'baixar')+'" target="_blank" class="btn-icon" title="Baixar">⬇</a>'+
+    '<button class="btn-icon danger" onclick="excluirDocSocio(''+d.id+'',''+d.drive_id+'')">✕</button>'+
+    '</div></div>'
+  ).join('');
+}
+
+async function uploadDocumentoSocioModal(file){
+  if(!file) return;
+  if(file.size>10*1024*1024){ toast('Arquivo muito grande. Máximo 10MB.','erro'); return; }
+  const progress = document.getElementById('upload-progress-socio');
+  const bar      = document.getElementById('upload-progress-bar-socio');
+  progress.style.display = 'block'; bar.style.width = '20%';
+  try{
+    const base64 = await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});
+    bar.style.width = '50%';
+    const token  = btoa(sessao.user.id+':'+Date.now()+':sigecon');
+    const forn   = fornecedores.find(x=>x.id===fornecedorEditando);
+    const subpasta = (forn?.razao_social||fornecedorEditando).substring(0,60).trim()+'/Socios';
+    const resp   = await fetch(DRIVE_GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({acao:'drive.upload',token,modulo:'Fornecedores',subpasta,
+        nomeArquivo:file.name,mimeType:file.type,base64,
+        idRegistro:_socioDocAtual.id,enviadoPor:sessao.user.id})
+    });
+    bar.style.width = '80%';
+    const resultado = await resp.json();
+    if(!resultado.sucesso) throw new Error(resultado.erro||'Erro no upload');
+    await sb.from('documentos').insert({
+      modulo:'socio', registro_id:_socioDocAtual.id,
+      tipo:_tipoDocSocioSel,
+      descricao:document.getElementById('doc-socio-descricao').value.trim()||null,
+      nome_arquivo:file.name, mime_type:file.type, tamanho_bytes:file.size,
+      drive_id:resultado.dados.driveId, drive_url:resultado.dados.driveUrl,
+      download_url:resultado.dados.downloadUrl, versao:1, criado_por:sessao.user.id
+    });
+    bar.style.width = '100%';
+    setTimeout(()=>{progress.style.display='none';bar.style.width='0%';},600);
+    document.getElementById('doc-socio-descricao').value = '';
+    toast('Documento do sócio enviado!','sucesso');
+    await carregarDocsSocioModal(_socioDocAtual.id);
+  }catch(err){
+    progress.style.display='none'; bar.style.width='0%';
+    toast('Erro: '+err.message,'erro');
+  }
+}
+
+async function excluirDocSocio(id, driveId){
+  if(!confirm('Remover este documento?')) return;
+  await sb.from('documentos').update({ativo:false,editado_por:sessao.user.id}).eq('id',id);
+  fetch(DRIVE_GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify({acao:'drive.excluir',token:btoa(sessao.user.id+':'+Date.now()+':sigecon'),driveId,excluirDrive:true})
+  }).catch(()=>{});
+  toast('Documento removido.','sucesso');
+  await carregarDocsSocioModal(_socioDocAtual.id);
 }
 
 async function carregarDocsSocio(socioId){
