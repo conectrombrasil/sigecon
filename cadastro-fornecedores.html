@@ -419,6 +419,25 @@ tbody tr:hover td{background:rgba(46,123,196,0.04);}
         </div>
       </div>
 
+      <!-- TAB ACESSO AO PORTAL -->
+      <div id="tab-acesso" class="tab-panel">
+        <div id="acesso-aviso-salvar" style="text-align:center;padding:24px;color:var(--text3);font-size:13px">
+          Salve o fornecedor primeiro para gerenciar acessos.
+        </div>
+        <div id="acesso-conteudo" style="display:none">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <div>
+              <div style="font-size:13px;font-weight:500">Usuários com acesso ao portal</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:2px">Cada usuário acessa apenas os dados deste fornecedor</div>
+            </div>
+            <button class="btn-sm" onclick="abrirModalCriarAcesso()">+ Criar acesso</button>
+          </div>
+          <div id="acesso-lista">
+            <div style="text-align:center;padding:16px;color:var(--text3);font-size:13px">Nenhum acesso criado.</div>
+          </div>
+        </div>
+      </div>
+
     </div>
     <div class="drawer-footer">
       <button class="btn-cancelar" onclick="fecharDrawer()">Cancelar</button>
