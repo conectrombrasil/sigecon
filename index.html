@@ -2539,10 +2539,9 @@ function renderizarSidebar() {
   const body = document.getElementById('sidebar-body');
   if (!body) return;
 
-  // Usa permissões reais do usuário (calculadas em mostrarModulos)
-  const modulosPermitidos = _modulosVisiveis.size > 0
-    ? _modulosVisiveis
-    : new Set(MODULOS.filter(m => MODULO_URLS[m.id]).map(m => m.id));
+  // Usa APENAS permissões reais — se ainda não calculadas, não renderiza
+  if (_modulosVisiveis.size === 0) return;
+  const modulosPermitidos = _modulosVisiveis;
 
   if (!_gruposBanco.length) {
     body.innerHTML = '<div style="padding:16px 12px;font-size:12px;color:var(--text3)">Nenhum grupo configurado.</div>';
