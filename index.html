@@ -2552,6 +2552,166 @@ function marcarModuloAtivo(moduloId) {
   });
 }
 
+// ══════════════════════════════════════════
+// ADMIN — GESTÃO DE GRUPOS DA SIDEBAR
+// ══════════════════════════════════════════
+async function carregarGruposAdmin() {
+  const { data: grupos } = await sb
+    .from('sidebar_grupos')
+    .select('*, sidebar_grupo_modulos(id, modulo_id, ordem)')
+    .order('ordem');
+
+  const wrap = document.getElementById('grupos-lista');
+  if (!wrap) return;
+
+  if (!grupos?.length) {
+    wrap.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3)">Nenhum grupo cadastrado.</div>';
+    return;
+  }
+
+  wrap.innerHTML = `<table>
+    <thead><tr><th>Ícone</th><th>Nome</th><th>Ordem</th><th>Status</th><th>Ações</th></tr></thead>
+    <tbody>
+    ${grupos.map(g => `<tr>
+      <td style="font-size:20px;text-align:center">${g.icone||'📁'}</td>
+      <td><strong>${g.nome}</strong></td>
+      <td class="td2">${g.ordem}</td>
+      <td><span class="status-badge status-${g.ativo?'ativo':'inativo'}">${g.ativo?'Ativo':'Inativo'}</span></td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn-acao" onclick="editarGrupo('${g.id}','${g.nome.replace(/'/g,"\'")}','${(g.icone||'📁').replace(/'/g,"\'")}',${g.ordem})">Editar</button>
+        <button class="btn-acao" onclick="toggleAtivoGrupo('${g.id}',${g.ativo})">${g.ativo?'Inativar':'Ativar'}</button>
+        <button class="btn-acao btn-danger" onclick="excluirGrupo('${g.id}')">Excluir</button>
+      </td>
+    </tr>`).join('')}
+    </tbody></table>`;
+
+  // Preenche select de grupos para vinculação
+  const sel = document.getElementById('vinc-grupo');
+  if (sel) {
+    const val = sel.value;
+    sel.innerHTML = '<option value="">Selecione o grupo...</option>';
+    grupos.forEach(g => sel.innerHTML += `<option value="${g.id}">${g.icone||'📁'} ${g.nome}</option>`);
+    if (val) sel.value = val;
+  }
+
+  await carregarVinculosGrupos();
+}
+
+async function carregarVinculosGrupos() {
+  const { data } = await sb
+    .from('sidebar_grupo_modulos')
+    .select('id, modulo_id, ordem, sidebar_grupos(nome, icone, ordem)')
+    .order('sidebar_grupos(ordem)');
+
+  const wrap = document.getElementById('vinculos-grupos-lista');
+  if (!wrap) return;
+
+  if (!data?.length) {
+    wrap.innerHTML = '<div style="padding:16px;color:var(--text3);font-size:13px">Nenhum vínculo cadastrado.</div>';
+    return;
+  }
+
+  wrap.innerHTML = `<table>
+    <thead><tr><th>Grupo</th><th>Módulo</th><th>Ordem</th><th></th></tr></thead>
+    <tbody>
+    ${data.map(v => {
+      const mod = TODOS_MODULOS.find(m => m.id === v.modulo_id);
+      return `<tr>
+        <td>${v.sidebar_grupos?.icone||'📁'} <strong>${v.sidebar_grupos?.nome||'—'}</strong></td>
+        <td class="td2">${mod?.nome || v.modulo_id}</td>
+        <td class="td2">${v.ordem}</td>
+        <td><button class="btn-acao btn-danger" onclick="excluirVinculo('${v.id}')">Remover</button></td>
+      </tr>`;
+    }).join('')}
+    </tbody></table>`;
+}
+
+async function salvarGrupo() {
+  const nome  = document.getElementById('grupo-nome').value.trim();
+  const icone = document.getElementById('grupo-icone').value.trim() || '📁';
+  const ordem = parseInt(document.getElementById('grupo-ordem').value) || 0;
+  if (!nome) { mostrarToast('Informe o nome do grupo.', 'erro'); return; }
+
+  const { error } = await sb.from('sidebar_grupos')
+    .insert({ nome, icone, ordem, criado_por: sessaoUsuario.user.id });
+  if (error) { mostrarToast('Erro: ' + error.message, 'erro'); return; }
+
+  document.getElementById('grupo-nome').value  = '';
+  document.getElementById('grupo-icone').value = '';
+  document.getElementById('grupo-ordem').value = '';
+  mostrarToast('Grupo criado!', 'sucesso');
+  await carregarGruposAdmin();
+  await iniciarSidebar();
+}
+
+function editarGrupo(id, nome, icone, ordem) {
+  document.getElementById('grupo-nome').value  = nome;
+  document.getElementById('grupo-icone').value = icone;
+  document.getElementById('grupo-ordem').value = ordem;
+  const btn = document.querySelector('#admin-grupos .btn-salvar');
+  if (!btn) return;
+  btn.textContent = 'Atualizar grupo';
+  btn.onclick = async () => {
+    const novoNome  = document.getElementById('grupo-nome').value.trim();
+    const novoIcone = document.getElementById('grupo-icone').value.trim() || '📁';
+    const novaOrdem = parseInt(document.getElementById('grupo-ordem').value) || 0;
+    const { error } = await sb.from('sidebar_grupos')
+      .update({ nome: novoNome, icone: novoIcone, ordem: novaOrdem }).eq('id', id);
+    if (error) { mostrarToast('Erro: ' + error.message, 'erro'); return; }
+    btn.textContent = 'Salvar grupo';
+    btn.onclick = salvarGrupo;
+    document.getElementById('grupo-nome').value  = '';
+    document.getElementById('grupo-icone').value = '';
+    document.getElementById('grupo-ordem').value = '';
+    mostrarToast('Grupo atualizado!', 'sucesso');
+    await carregarGruposAdmin();
+    await iniciarSidebar();
+  };
+}
+
+async function toggleAtivoGrupo(id, ativo) {
+  const { error } = await sb.from('sidebar_grupos').update({ ativo: !ativo }).eq('id', id);
+  if (error) { mostrarToast('Erro: ' + error.message, 'erro'); return; }
+  mostrarToast(ativo ? 'Grupo inativado.' : 'Grupo ativado.', 'sucesso');
+  await carregarGruposAdmin();
+  await iniciarSidebar();
+}
+
+async function excluirGrupo(id) {
+  if (!confirm('Excluir este grupo? Os vínculos também serão removidos.')) return;
+  const { error } = await sb.from('sidebar_grupos').delete().eq('id', id);
+  if (error) { mostrarToast('Erro: ' + error.message, 'erro'); return; }
+  mostrarToast('Grupo removido.', 'sucesso');
+  await carregarGruposAdmin();
+  await iniciarSidebar();
+}
+
+async function vincularModuloGrupo() {
+  const grupoId  = document.getElementById('vinc-grupo').value;
+  const moduloId = document.getElementById('vinc-modulo').value;
+  const ordem    = parseInt(document.getElementById('vinc-ordem').value) || 0;
+  if (!grupoId || !moduloId) { mostrarToast('Selecione grupo e módulo.', 'erro'); return; }
+  const { error } = await sb.from('sidebar_grupo_modulos')
+    .insert({ grupo_id: grupoId, modulo_id: moduloId, ordem });
+  if (error) {
+    mostrarToast(error.message.includes('unique') ? 'Este módulo já está neste grupo.' : error.message, 'erro');
+    return;
+  }
+  document.getElementById('vinc-ordem').value = '';
+  mostrarToast('Módulo vinculado!', 'sucesso');
+  await carregarGruposAdmin();
+  await iniciarSidebar();
+}
+
+async function excluirVinculo(id) {
+  if (!confirm('Remover este vínculo?')) return;
+  const { error } = await sb.from('sidebar_grupo_modulos').delete().eq('id', id);
+  if (error) { mostrarToast('Erro: ' + error.message, 'erro'); return; }
+  mostrarToast('Vínculo removido.', 'sucesso');
+  await carregarGruposAdmin();
+  await iniciarSidebar();
+}
+
 // ── TEMA ────────────────────────────────────────────────────
 (function(){
   const tema = localStorage.getItem('sigecon_tema') || 'dark';
