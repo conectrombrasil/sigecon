@@ -1423,6 +1423,71 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
       </div>
 
     </div>
+      <!-- PAINEL GRUPOS SIDEBAR -->
+      <div id="admin-grupos" class="admin-panel">
+        <div class="admin-form">
+          <h3>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+            Novo grupo
+          </h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nome do grupo *</label>
+              <input type="text" id="grupo-nome" placeholder="Ex: Relatórios"/>
+            </div>
+            <div class="form-group" style="max-width:120px">
+              <label>Ícone (emoji)</label>
+              <input type="text" id="grupo-icone" placeholder="📁" maxlength="4"/>
+            </div>
+            <div class="form-group" style="max-width:100px">
+              <label>Ordem</label>
+              <input type="number" id="grupo-ordem" placeholder="0" min="0"/>
+            </div>
+          </div>
+          <button class="btn-salvar" onclick="salvarGrupo()">Salvar grupo</button>
+        </div>
+
+        <div class="admin-table-wrap" style="margin-top:20px">
+          <div class="admin-table-header">
+            <h3>Grupos cadastrados</h3>
+            <button class="btn-refresh" onclick="carregarGruposAdmin()">↻</button>
+          </div>
+          <div id="grupos-lista">
+            <div style="padding:20px;text-align:center;color:var(--text3)">Carregando...</div>
+          </div>
+        </div>
+
+        <div class="admin-form" style="margin-top:20px">
+          <h3>Vincular módulo a grupo</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Grupo *</label>
+              <select id="vinc-grupo">
+                <option value="">Selecione o grupo...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Módulo *</label>
+              <select id="vinc-modulo">
+                <option value="">Selecione o módulo...</option>
+              </select>
+            </div>
+            <div class="form-group" style="max-width:100px">
+              <label>Ordem</label>
+              <input type="number" id="vinc-ordem" placeholder="0" min="0"/>
+            </div>
+          </div>
+          <button class="btn-salvar" onclick="vincularModuloGrupo()">Vincular</button>
+        </div>
+
+        <div class="admin-table-wrap" style="margin-top:20px">
+          <div class="admin-table-header"><h3>Módulos por grupo</h3></div>
+          <div id="vinculos-grupos-lista">
+            <div style="padding:16px;color:var(--text3);font-size:13px">Carregando...</div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
 <!-- MODAL EDITAR OBRA -->
