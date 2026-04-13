@@ -995,7 +995,7 @@ async function recarregarSocios(){
       '<td>'+s.nome+'</td>' +
       '<td class="td2">'+(s.qualificacao||'')+'</td>' +
       '<td class="td2">'+(s.cpf_cnpj_socio||'')+'</td>' +
-      '<td><label style="cursor:pointer;color:var(--blue2);font-size:12px" title="Anexar doc">📎<input type="file" style="display:none" accept=".pdf,.jpg,.jpeg,.png,.docx" onchange="uploadDocumentoSocio(\''+s.id+'\',\''+s.nome.replace(/'/g,"\\'")+'\',this.files[0])"/></label></td>' +
+      '<td><button class="btn-icon" onclick="abrirModalDocSocio(\''+s.id+'\',\''+s.nome.replace(/'/g,"'")+'\')">📎 Docs</button></td>' +
       '<td><button class="btn-icon danger" onclick="excluirSocio(\''+s.id+'\')">Excluir</button></td>' +
       '</tr>' +
       '<tr id="socio-docs-row-'+s.id+'">' +
