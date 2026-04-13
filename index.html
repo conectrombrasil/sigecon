@@ -1474,6 +1474,9 @@ async function carregarUsuario(userId) {
   dadosUsuario = data;
 
   if (data) {
+    // Se fornecedor, não tenta renderizar elementos da tela interna
+    if (data.perfis?.nome === 'fornecedor') return data;
+
     const iniciais = data.nome.split(' ').slice(0,2).map(n => n[0]).join('').toUpperCase();
     document.getElementById('user-avatar').textContent = iniciais;
     document.getElementById('user-nome-display').textContent = data.nome;
@@ -1482,6 +1485,7 @@ async function carregarUsuario(userId) {
       document.getElementById('btn-admin-wrap').style.display = 'block';
     }
   }
+  return data;
 }
 
 // ══════════════════════════════════════════
