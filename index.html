@@ -1996,15 +1996,30 @@ function voltarDoAdmin() {
 }
 
 function trocarAbaAdmin(aba) {
-  const abas = ['obras','usuarios','vinculos','modulos'];
-  document.querySelectorAll('.admin-tab').forEach((t,i) => {
-    t.classList.toggle('ativo', abas[i] === aba);
+  // Marca tab ativo pelo data ou pelo onclick
+  document.querySelectorAll('.admin-tab').forEach(t => {
+    const fn = t.getAttribute('onclick') || '';
+    t.classList.toggle('ativo', fn.includes("'" + aba + "'"));
   });
   document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('ativo'));
-  document.getElementById('admin-' + aba).classList.add('ativo');
+  const painel = document.getElementById('admin-' + aba);
+  if (painel) painel.classList.add('ativo');
+
   if (aba === 'modulos') {
     carregarSelectModUsuarios();
     carregarTabelaModulos();
+  }
+
+  if (aba === 'grupos') {
+    // Popula select de módulos
+    const sel = document.getElementById('vinc-modulo');
+    if (sel) {
+      sel.innerHTML = '<option value="">Selecione o módulo...</option>';
+      TODOS_MODULOS.forEach(m => {
+        sel.innerHTML += `<option value="${m.id}">${m.nome}</option>`;
+      });
+    }
+    carregarGruposAdmin();
   }
 }
 
