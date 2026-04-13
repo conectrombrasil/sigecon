@@ -914,6 +914,161 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
   justify-content:center;transition:all 0.2s;color:#fff;}
 .theme-toggle:hover{background:rgba(255,255,255,0.1);}
 
+
+  /* ══════════════════════════════
+     SIDEBAR
+  ══════════════════════════════ */
+  .sidebar {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 240px;
+    height: calc(100vh - 60px);
+    background: var(--navy2);
+    border-right: 1px solid var(--border);
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.25s ease, width 0.25s ease;
+    overflow: hidden;
+  }
+  .sidebar.colapsada {
+    width: 52px;
+  }
+  .sidebar.fechada {
+    transform: translateX(-100%);
+  }
+  .sidebar-header {
+    padding: 14px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .sidebar-titulo {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text3);
+    white-space: nowrap;
+    overflow: hidden;
+    transition: opacity 0.2s;
+  }
+  .sidebar.colapsada .sidebar-titulo { opacity: 0; }
+  .sidebar-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 8px 0;
+  }
+  /* GRUPOS */
+  .sb-grupo {
+    margin-bottom: 4px;
+  }
+  .sb-grupo-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+    user-select: none;
+    border-radius: 6px;
+    margin: 0 6px;
+  }
+  .sb-grupo-header:hover { background: rgba(46,123,196,0.08); }
+  .sb-grupo-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    background: rgba(46,123,196,0.12);
+    border: 1px solid var(--border);
+  }
+  .sb-grupo-nome {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    flex: 1;
+    transition: opacity 0.2s;
+  }
+  .sidebar.colapsada .sb-grupo-nome { opacity: 0; width: 0; }
+  .sb-grupo-seta {
+    font-size: 10px;
+    color: var(--text3);
+    transition: transform 0.2s, opacity 0.2s;
+    flex-shrink: 0;
+  }
+  .sidebar.colapsada .sb-grupo-seta { opacity: 0; }
+  .sb-grupo.aberto .sb-grupo-seta { transform: rotate(90deg); }
+  /* ITENS */
+  .sb-itens {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.25s ease;
+  }
+  .sb-grupo.aberto .sb-itens { max-height: 500px; }
+  .sidebar.colapsada .sb-itens { max-height: 0 !important; }
+  .sb-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 12px 7px 50px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text2);
+    transition: all 0.15s;
+    white-space: nowrap;
+    border-radius: 6px;
+    margin: 1px 6px;
+  }
+  .sb-item:hover { background: rgba(46,123,196,0.08); color: var(--text); }
+  .sb-item.ativo { background: rgba(46,123,196,0.15); color: var(--blue2); }
+  .sidebar.colapsada .sb-item { padding: 7px 12px; justify-content: center; }
+  .sidebar.colapsada .sb-item span { display: none; }
+  /* Tooltip no modo colapsado */
+  .sb-item[data-tooltip] { position: relative; }
+  /* Botão toggle sidebar no topbar */
+  .btn-sidebar-toggle {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 6px;
+    width: 32px; height: 32px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 16px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .btn-sidebar-toggle:hover { background: rgba(255,255,255,0.1); }
+  /* Conteúdo principal se afasta da sidebar */
+  .tela-conteudo {
+    margin-left: 240px;
+    transition: margin-left 0.25s ease;
+    min-height: calc(100vh - 60px);
+    padding-top: 60px;
+  }
+  .tela-conteudo.sidebar-colapsada { margin-left: 52px; }
+  .tela-conteudo.sidebar-fechada { margin-left: 0; }
+  /* Separador */
+  .sb-sep {
+    height: 1px;
+    background: var(--border);
+    margin: 6px 12px;
+  }
+  /* Light mode sidebar */
+  body.light .sidebar { background: #FFFFFF; }
+  body.light .sb-grupo-icon { background: rgba(46,123,196,0.08); }
+
 </style>
 <script>(function(){if(localStorage.getItem("sigecon_tema")==="light")document.body.classList.add("light");})()</script>
 </head>
@@ -954,6 +1109,9 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
 
   <!-- TOPBAR -->
   <div class="topbar">
+    <button class="btn-sidebar-toggle" id="btn-sidebar-toggle" onclick="toggleSidebar()" title="Menu">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
     <div class="topbar-logo">
       <div class="topbar-logo-mark">
         <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1001,6 +1159,19 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
         </div>
       </div>
     </div>
+
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-titulo">Navegação</span>
+    </div>
+    <div class="sidebar-body" id="sidebar-body">
+      <!-- Renderizado pelo JS -->
+    </div>
+  </nav>
+
+  <div class="tela-conteudo" id="tela-conteudo">
 
     <!-- PORTAL DE MÓDULOS -->
     <div id="tela-modulos">
@@ -1644,6 +1815,9 @@ async function mostrarModulos() {
       <p class="modulo-tag">${m.tag}</p>
     </div>
   `).join('');
+
+  // Renderiza sidebar com os módulos disponíveis
+  iniciarSidebar();
 }
 
 const MODULO_URLS = {
@@ -1661,6 +1835,7 @@ const MODULO_URLS = {
 };
 
 function abrirModulo(id) {
+  marcarModuloAtivo(id);
   const url = MODULO_URLS[id];
   if (url && obraAtiva) {
     window.location.href = `${url}?obra=${obraAtiva.id}`;
@@ -1668,7 +1843,7 @@ function abrirModulo(id) {
     mostrarToast('Selecione uma obra primeiro.', 'erro');
   } else {
     const modulo = MODULOS.find(m => m.id === id);
-    mostrarToast(`Módulo "${modulo.nome}" em desenvolvimento.`, 'sucesso');
+    mostrarToast(`Módulo "${modulo?.nome || id}" em desenvolvimento.`, 'sucesso');
   }
 }
 
@@ -2195,6 +2370,120 @@ function mostrarToast(msg, tipo = 'sucesso') {
   `;
   container.appendChild(toast);
   setTimeout(() => toast.remove(), 4000);
+}
+
+// ══════════════════════════════════════════
+// SIDEBAR
+// ══════════════════════════════════════════
+const GRUPOS_SIDEBAR = [
+  {
+    id: 'fornecedores', nome: 'Fornecedores', icon: '🏢',
+    modulos: ['cadastro_fornecedor', 'portal_fornecedor']
+  },
+  {
+    id: 'contratos', nome: 'Contratos', icon: '📄',
+    modulos: ['solicitacao_contratos', 'elaboracao_contratos', 'gestao_contratos']
+  },
+  {
+    id: 'medicoes', nome: 'Medições', icon: '📊',
+    modulos: ['medicoes', 'assinatura_medicoes']
+  },
+  {
+    id: 'financeiro', nome: 'Financeiro', icon: '💰',
+    modulos: ['contas_pagar', 'status_pagamentos']
+  },
+  {
+    id: 'frota', nome: 'Frota & Operação', icon: '🚛',
+    modulos: ['gestao_frota', 'escaner_diario']
+  },
+];
+
+let _sidebarAberta = localStorage.getItem('sigecon_sidebar') !== 'colapsada';
+let _gruposAbertos = JSON.parse(localStorage.getItem('sigecon_grupos') || '["contratos","fornecedores"]');
+
+function renderizarSidebar() {
+  const body = document.getElementById('sidebar-body');
+  if (!body) return;
+
+  // Filtra módulos que o usuário tem acesso
+  const modulosPermitidos = new Set(
+    MODULOS.filter(m => MODULO_URLS[m.id]).map(m => m.id)
+  );
+
+  body.innerHTML = GRUPOS_SIDEBAR.map(grupo => {
+    const itens = grupo.modulos
+      .filter(mid => modulosPermitidos.has(mid))
+      .map(mid => {
+        const mod = MODULOS.find(m => m.id === mid);
+        if (!mod) return '';
+        return `<div class="sb-item" onclick="abrirModulo('${mid}')" data-modulo="${mid}">
+          <span>${mod.nome}</span>
+        </div>`;
+      }).join('');
+
+    if (!itens) return ''; // Grupo sem módulos visíveis — oculta
+
+    const aberto = _gruposAbertos.includes(grupo.id);
+    return `<div class="sb-grupo ${aberto ? 'aberto' : ''}" id="sbg-${grupo.id}">
+      <div class="sb-grupo-header" onclick="toggleGrupo('${grupo.id}')">
+        <div class="sb-grupo-icon">${grupo.icon}</div>
+        <span class="sb-grupo-nome">${grupo.nome}</span>
+        <span class="sb-grupo-seta">▶</span>
+      </div>
+      <div class="sb-itens">${itens}</div>
+    </div>`;
+  }).filter(Boolean).join('<div class="sb-sep"></div>');
+}
+
+function toggleGrupo(id) {
+  const el = document.getElementById('sbg-' + id);
+  if (!el) return;
+  el.classList.toggle('aberto');
+  if (el.classList.contains('aberto')) {
+    if (!_gruposAbertos.includes(id)) _gruposAbertos.push(id);
+  } else {
+    _gruposAbertos = _gruposAbertos.filter(g => g !== id);
+  }
+  localStorage.setItem('sigecon_grupos', JSON.stringify(_gruposAbertos));
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const conteudo = document.getElementById('tela-conteudo');
+  if (!sidebar) return;
+
+  _sidebarAberta = !_sidebarAberta;
+
+  if (_sidebarAberta) {
+    sidebar.classList.remove('colapsada');
+    if (conteudo) { conteudo.classList.remove('sidebar-colapsada'); }
+    localStorage.setItem('sigecon_sidebar', 'aberta');
+  } else {
+    sidebar.classList.add('colapsada');
+    if (conteudo) { conteudo.classList.add('sidebar-colapsada'); }
+    localStorage.setItem('sigecon_sidebar', 'colapsada');
+  }
+}
+
+function iniciarSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const conteudo = document.getElementById('tela-conteudo');
+  if (!sidebar) return;
+
+  // Aplica estado salvo
+  if (!_sidebarAberta) {
+    sidebar.classList.add('colapsada');
+    if (conteudo) conteudo.classList.add('sidebar-colapsada');
+  }
+
+  renderizarSidebar();
+}
+
+// Marca módulo ativo na sidebar
+function marcarModuloAtivo(moduloId) {
+  document.querySelectorAll('.sb-item').forEach(el => {
+    el.classList.toggle('ativo', el.dataset.modulo === moduloId);
+  });
 }
 
 // ── TEMA ────────────────────────────────────────────────────
