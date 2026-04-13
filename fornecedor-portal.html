@@ -112,7 +112,8 @@ tbody tr:hover td{background:rgba(46,123,196,0.04);}
   <div class="topbar-modulo">Portal do Fornecedor</div>
   <div class="topbar-right">
     <div class="obra-chip">Obra: <span id="obra-nome-display">—</span></div>
-    <a class="btn-voltar" href="index.html">← Portal</a>
+    <span id="topbar-nome-fornecedor" style="font-size:13px;color:var(--text2)"></span>
+    <button class="btn-voltar" onclick="fazerLogout()" style="border-color:var(--danger);color:#ff8080">Sair</button>
   </div>
 </div>
 
@@ -120,11 +121,8 @@ tbody tr:hover td{background:rgba(46,123,196,0.04);}
   <div class="page-header">
     <div><div class="page-title">Portal do Fornecedor</div><div class="page-subtitle">Visão simplificada — contratos e pagamentos</div></div>
   </div>
-  <div id="sel-fornecedor-wrap" style="margin-bottom:24px">
-    <div class="form-group" style="max-width:400px">
-      <label>Selecione o fornecedor</label>
-      <select id="sel-fornecedor" onchange="carregarPortal()"><option value="">Selecione...</option></select>
-    </div>
+  <div id="portal-loading" style="text-align:center;padding:48px;color:var(--text3)">
+    <div class="spinner"></div>
   </div>
   <div id="portal-conteudo" style="display:none">
     <div class="kpi-grid" id="kpis"></div>
@@ -148,33 +146,45 @@ const SUPABASE_URL='https://tozxqxvwuqelajoowlfe.supabase.co';
 const SUPABASE_KEY='sb_publishable_AybOS8E3yIQQpDqZ4GVtbQ_lnh2EySO';
 const {createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
-let sessao=null,obraId=null;
+let sessao=null, fornecedorId=null;
+
 window.addEventListener('DOMContentLoaded',async()=>{
   const {data:{session}}=await sb.auth.getSession();
   if(!session){window.location.href='index.html';return;}
   sessao=session;
-  const params=new URLSearchParams(window.location.search);
-  obraId=params.get('obra');
-  if(obraId){const {data:obra}=await sb.from('obras').select('nome').eq('id',obraId).single();if(obra)document.getElementById('obra-nome-display').textContent=obra.nome;}
-  await init();
+
+  // Busca dados do usuário logado e seu fornecedor_id
+  const {data:usuario}=await sb.from('usuarios')
+    .select('nome,fornecedor_id,perfis(nome),fornecedores(razao_social)')
+    .eq('id',session.user.id)
+    .single();
+
+  if(!usuario||usuario.perfis?.nome!=='fornecedor'){
+    window.location.href='index.html';
+    return;
+  }
+
+  fornecedorId=usuario.fornecedor_id;
+  const nomeForn=usuario.fornecedores?.razao_social||usuario.nome||'';
+  document.getElementById('topbar-nome-fornecedor').textContent=nomeForn;
+  document.getElementById('obra-nome-display').textContent=nomeForn;
+
+  await carregarPortal(fornecedorId);
 });
 
+async function fazerLogout(){
+  await sb.auth.signOut();
+  window.location.href='index.html';
+}
 
 function mostrarToast(msg,tipo='sucesso'){const c=document.getElementById('toast-container');const t=document.createElement('div');t.className=`toast ${tipo}`;t.innerHTML=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${tipo==='sucesso'?'#2ECC8A':'#E05555'}" stroke-width="2">${tipo==='sucesso'?'<polyline points="20 6 9 17 4 12"/>':'<circle cx="12" cy="12" r="10"/>'}</svg>${msg}`;c.appendChild(t);setTimeout(()=>t.remove(),4000);}
 function formatarData(iso){if(!iso)return'—';return new Date(iso).toLocaleDateString('pt-BR');}
 function formatarMoeda(v){if(!v&&v!==0)return'—';return'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2});}
 function tipoLabel(t){return{locacao_maquinas:'Locação Máquinas',locacao_veiculos:'Locação Veículos',locacao_equipamentos:'Locação Equipamentos'}[t]||t||'—';}
 
-
-async function init(){
-  const {data:forn}=await sb.from('fornecedores').select('id,razao_social').eq('status','ativo').order('razao_social');
-  const sel=document.getElementById('sel-fornecedor');
-  (forn||[]).forEach(f=>sel.innerHTML+=`<option value="${f.id}">${f.razao_social}</option>`);
-}
-
-async function carregarPortal(){
-  const fid=document.getElementById('sel-fornecedor').value;
-  if(!fid){document.getElementById('portal-conteudo').style.display='none';return;}
+async function carregarPortal(fid){
+  if(!fid){return;}
+  document.getElementById('portal-loading').style.display='none';
   document.getElementById('portal-conteudo').style.display='block';
   const [{data:cts},{data:pags}]=await Promise.all([
     sb.from('contratos').select('*').eq('fornecedor_id',fid),
