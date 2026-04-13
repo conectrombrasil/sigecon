@@ -100,7 +100,54 @@ tbody tr:hover td{background:rgba(46,123,196,0.04);}
 @keyframes spin{to{transform:rotate(360deg);}}
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
 .fade-in{animation:fadeIn 0.3s ease;}
+
+/* ── TEMA CLARO ─────────────────────────────────────────── */
+body.light {
+  --navy:#F0F4F8;
+  --navy2:#FFFFFF;
+  --navy3:#E2E8F0;
+  --blue:#2E7BC4;
+  --blue2:#1A5FA8;
+  --blue-glow:rgba(46,123,196,0.15);
+  --text:#1A2533;
+  --text2:#3D5A73;
+  --text3:#7A96AD;
+  --border:rgba(26,51,82,0.12);
+  --border2:rgba(26,51,82,0.25);
+  --success:#1A9E5F;
+  --danger:#C0392B;
+  --warning:#B07D10;
+}
+body.light .topbar{background:rgba(26,51,82,0.97);}
+body.light .topbar-modulo{color:rgba(255,255,255,0.7);}
+body.light .obra-chip{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.8);}
+body.light .obra-chip span{color:#fff;}
+body.light .btn-voltar{border-color:rgba(255,255,255,0.3);color:rgba(255,255,255,0.7);}
+body.light .btn-voltar:hover{border-color:#fff;color:#fff;}
+body.light body::before{background-image:linear-gradient(rgba(26,51,82,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(26,51,82,0.04) 1px,transparent 1px);}
+body.light .drawer{background:#FFFFFF;border-left-color:rgba(26,51,82,0.2);}
+body.light .drawer-footer{background:#FFFFFF;}
+body.light .mmodal{background:#FFFFFF;}
+body.light .fg input,.body.light .fg select,.body.light .fg textarea{background:#F8FAFC;}
+body.light .fg input,.body.light .fg select{color:var(--text);}
+body.light .tab-panel{background:transparent;}
+body.light .tipo-btn{background:#F8FAFC;}
+body.light .tipo-btn.ativo{background:rgba(46,123,196,0.1);}
+body.light .upload-area{background:#F8FAFC;}
+body.light .pix-item input,.body.light .pix-item select{background:#F8FAFC;}
+body.light .toast{background:#FFFFFF;}
+body.light .badge-pj{background:rgba(46,123,196,0.1);}
+body.light .badge-ativo{background:rgba(26,158,95,0.1);}
+body.light .badge-inativo{background:rgba(122,150,173,0.15);}
+body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue);}
+/* Toggle btn */
+.theme-toggle{background:transparent;border:1px solid rgba(255,255,255,0.3);border-radius:6px;
+  width:32px;height:32px;cursor:pointer;font-size:15px;display:flex;align-items:center;
+  justify-content:center;transition:all 0.2s;color:#fff;}
+.theme-toggle:hover{background:rgba(255,255,255,0.1);}
+
 </style>
+<script>(function(){if(localStorage.getItem("sigecon_tema")==="light")document.body.classList.add("light");})()</script>
 </head>
 <body>
 <div class="topbar">
@@ -285,6 +332,26 @@ async function alterarStatus(){
 }
 
 function fecharModal(){document.getElementById('modal').classList.remove('aberto');}
+
+
+// ── TEMA ────────────────────────────────────────────────────
+(function(){
+  const tema = localStorage.getItem('sigecon_tema') || 'dark';
+  if(tema === 'light') document.body.classList.add('light');
+})();
+
+function toggleTema(){
+  const isLight = document.body.classList.toggle('light');
+  localStorage.setItem('sigecon_tema', isLight ? 'light' : 'dark');
+  const btn = document.getElementById('theme-toggle');
+  if(btn) btn.textContent = isLight ? '☀️' : '🌙';
+}
+
+// Aplica ícone correto ao carregar
+window.addEventListener('DOMContentLoaded', function(){
+  const btn = document.getElementById('theme-toggle');
+  if(btn) btn.textContent = document.body.classList.contains('light') ? '☀️' : '🌙';
+});
 
 </script>
 </body>
