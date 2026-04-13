@@ -1440,7 +1440,11 @@ async function fazerLogin() {
   }
 
   sessaoUsuario = data.session;
-  await carregarUsuario(data.user.id);
+  const usr = await carregarUsuario(data.user.id);
+  if(usr?.perfis?.nome === 'fornecedor'){
+    window.location.href = 'fornecedor-portal.html';
+    return;
+  }
   mostrarApp();
 }
 
@@ -1484,6 +1488,11 @@ async function carregarUsuario(userId) {
 // NAVEGAÇÃO
 // ══════════════════════════════════════════
 function mostrarApp() {
+  // Segurança extra — se por algum motivo fornecedor chegar aqui, redireciona
+  if(dadosUsuario?.perfis?.nome === 'fornecedor'){
+    window.location.href = 'fornecedor-portal.html';
+    return;
+  }
   document.getElementById('tela-login').style.display = 'none';
   document.getElementById('tela-app').style.display = 'block';
   mostrarObras();
