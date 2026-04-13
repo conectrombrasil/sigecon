@@ -1395,7 +1395,12 @@ window.addEventListener('DOMContentLoaded', async () => {
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
     sessaoUsuario = session;
-    await carregarUsuario(session.user.id);
+    const usuario = await carregarUsuario(session.user.id);
+    // Fornecedor vai direto para o portal externo
+    if(usuario?.perfis?.nome === 'fornecedor'){
+      window.location.href = 'fornecedor-portal.html';
+      return;
+    }
     mostrarApp();
   }
 
