@@ -247,6 +247,36 @@ window.addEventListener('DOMContentLoaded',async()=>{
   const {data:{session}}=await sb.auth.getSession();
   if(!session){window.location.href='index.html';return;}
   sessao=session;
+
+  // ── Verifica permissão para este módulo ──────────────────
+  const _moduloId = 'gestao_frota';
+  const { data: _usr } = await sb.from('usuarios')
+    .select('perfis(nome)')
+    .eq('id', session.user.id)
+    .single();
+
+  const _perfil = _usr?.perfis?.nome;
+
+  // Admin sempre tem acesso
+  if (_perfil !== 'admin') {
+    // Fornecedor não acessa módulos internos
+    if (_perfil === 'fornecedor') {
+      window.location.href = 'fornecedor-portal.html';
+      return;
+    }
+    // Verifica se tem o módulo liberado
+    const { data: _perm } = await sb.from('usuario_modulos')
+      .select('modulo')
+      .eq('usuario_id', session.user.id)
+      .eq('modulo', _moduloId)
+      .single();
+    if (!_perm) {
+      alert('Você não tem permissão para acessar este módulo.');
+      window.location.href = 'index.html';
+      return;
+    }
+  }
+  // ── Fim verificação ──────────────────────────────────────
   const params=new URLSearchParams(window.location.search);
   obraId=params.get('obra');
   if(obraId){const {data:obra}=await sb.from('obras').select('nome').eq('id',obraId).single();if(obra)document.getElementById('obra-nome-display').textContent=obra.nome;}
