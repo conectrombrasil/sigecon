@@ -153,19 +153,46 @@ window.addEventListener('DOMContentLoaded',async()=>{
   if(!session){window.location.href='index.html';return;}
   sessao=session;
 
-  // Busca dados do usuário logado e seu fornecedor_id
-  const {data:usuario}=await sb.from('usuarios')
-    .select('nome,fornecedor_id,perfis(nome),fornecedores(razao_social)')
+  // Busca usuário — query simples sem join para evitar problemas de RLS
+  const {data:usuario, error:errUsr}=await sb.from('usuarios')
+    .select('id,nome,fornecedor_id,perfil_id,perfis(nome)')
     .eq('id',session.user.id)
     .single();
 
-  if(!usuario||usuario.perfis?.nome!=='fornecedor'){
-    window.location.href='index.html';
+  console.log('usuario:', usuario, 'erro:', errUsr);
+
+  // Se não achou ou não é fornecedor — mostra erro em vez de redirecionar (evita loop)
+  if(errUsr||!usuario){
+    document.getElementById('portal-loading').innerHTML=
+      '<div style="color:var(--danger);font-size:14px">Erro ao carregar dados do usuário.<br>'+
+      '<a href="index.html" style="color:var(--blue2)">Voltar ao login</a></div>';
+    return;
+  }
+
+  if(usuario.perfis?.nome!=='fornecedor'){
+    document.getElementById('portal-loading').innerHTML=
+      '<div style="color:var(--text3);font-size:14px">Acesso não autorizado.<br>'+
+      '<a href="index.html" style="color:var(--blue2)">Voltar ao login</a></div>';
+    return;
+  }
+
+  if(!usuario.fornecedor_id){
+    document.getElementById('portal-loading').innerHTML=
+      '<div style="color:var(--warning);font-size:14px">Usuário não vinculado a um fornecedor.<br>'+
+      'Solicite ao administrador que vincule seu usuário a um fornecedor.<br>'+
+      '<a href="index.html" style="color:var(--blue2)">Voltar ao login</a></div>';
     return;
   }
 
   fornecedorId=usuario.fornecedor_id;
-  const nomeForn=usuario.fornecedores?.razao_social||usuario.nome||'';
+
+  // Busca nome do fornecedor separadamente
+  const {data:forn}=await sb.from('fornecedores')
+    .select('razao_social')
+    .eq('id',fornecedorId)
+    .single();
+
+  const nomeForn=forn?.razao_social||usuario.nome||'';
   document.getElementById('topbar-nome-fornecedor').textContent=nomeForn;
   document.getElementById('obra-nome-display').textContent=nomeForn;
 
