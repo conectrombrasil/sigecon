@@ -239,6 +239,7 @@ tbody tr:hover td{background:rgba(46,123,196,0.04);}
         <button class="tab-btn" onclick="mudarTab('bancarios',this)">Dados bancários</button>
         <button class="tab-btn" onclick="mudarTab('documentos',this)" id="tab-btn-documentos">Documentos</button>
         <button class="tab-btn" onclick="mudarTab('ativos',this)">Ativos</button>
+        <button class="tab-btn" onclick="mudarTab('acesso',this)" id="tab-btn-acesso">🔑 Acesso ao Portal</button>
       </div>
 
       <!-- TAB DADOS -->
@@ -523,6 +524,36 @@ tbody tr:hover td{background:rgba(46,123,196,0.04);}
   </div>
 </div>
 
+<!-- MODAL CRIAR ACESSO FORNECEDOR -->
+<div class="mmodal-overlay" id="modal-criar-acesso" onclick="if(event.target===this)fecharModalCriarAcesso()" style="display:none;z-index:310">
+  <div class="mmodal" onclick="event.stopPropagation()" style="max-width:440px">
+    <h3>Criar acesso ao portal</h3>
+    <p style="font-size:12px;color:var(--text3);margin:-10px 0 18px">O fornecedor poderá acessar o portal com e-mail e senha.</p>
+    <div class="frow" style="margin-bottom:12px">
+      <div class="fg" style="grid-column:span 2">
+        <label>Nome *</label>
+        <input type="text" id="acesso-nome" placeholder="Nome do representante"/>
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <label>E-mail *</label>
+      <input type="email" id="acesso-email" placeholder="email@fornecedor.com.br"/>
+    </div>
+    <div class="fg" style="margin-bottom:0">
+      <label>Senha inicial *</label>
+      <div style="position:relative">
+        <input type="password" id="acesso-senha" placeholder="Mínimo 6 caracteres" style="width:100%;padding-right:40px"/>
+        <button type="button" onclick="toggleSenhaAcesso()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px">👁</button>
+      </div>
+      <span style="font-size:11px;color:var(--text3);margin-top:4px;display:block">Repasse a senha ao fornecedor por canal seguro.</span>
+    </div>
+    <div class="mmodal-actions">
+      <button class="btn-cancelar" onclick="fecharModalCriarAcesso()">Cancelar</button>
+      <button class="btn-salvar" id="btn-criar-acesso" onclick="criarAcessoFornecedor()">Criar acesso</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-container" id="toast-container"></div>
 
 <script>
@@ -677,6 +708,10 @@ async function preencherDrawer(f){
   if(f.estado){document.getElementById('f-estado').value=f.estado;await carregarCidades('f-estado','f-cidade',f.cidade||'');}
   await recarregarSocios();
   await recarregarContatos();
+  // Habilita aba acesso
+  document.getElementById('acesso-aviso-salvar').style.display='none';
+  document.getElementById('acesso-conteudo').style.display='block';
+  await recarregarAcessos();
   // Habilita abas de documentos e ativos
   document.getElementById('docs-aviso-salvar').style.display='none';
   document.getElementById('docs-conteudo').style.display='block';
@@ -1404,6 +1439,112 @@ function mascaraDocStr(doc,tipo){
 }
 
 function alertaModal(msg){const el=document.getElementById('alerta-modal');el.textContent=msg;el.classList.add('visivel');setTimeout(()=>el.classList.remove('visivel'),5000);}
+
+// ══════════════════════════════════════════
+// ACESSO AO PORTAL DO FORNECEDOR
+// ══════════════════════════════════════════
+const EDGE_URL = 'https://tozxqxvwuqelajoowlfe.supabase.co/functions/v1/criar-usuario-fornecedor';
+
+async function recarregarAcessos(){
+  if(!fornecedorEditando) return;
+  const {data} = await sb.from('usuarios')
+    .select('id,nome,email,ativo,criado_em,perfis(nome)')
+    .eq('fornecedor_id', fornecedorEditando)
+    .order('criado_em');
+  const lista = data||[];
+  const wrap = document.getElementById('acesso-lista');
+  if(!lista.length){
+    wrap.innerHTML='<div style="text-align:center;padding:16px;color:var(--text3);font-size:13px">Nenhum acesso criado.</div>';
+    return;
+  }
+  wrap.innerHTML = `<table class="mtable">
+    <thead><tr><th>Nome</th><th>E-mail</th><th>Status</th><th>Criado em</th><th></th></tr></thead>
+    <tbody>
+    ${lista.map(u=>`<tr>
+      <td>${u.nome}</td>
+      <td class="td2">${u.email}</td>
+      <td><span class="badge badge-${u.ativo?'ativo':'inativo'}">${u.ativo?'Ativo':'Bloqueado'}</span></td>
+      <td class="td2">${formatarData(u.criado_em)}</td>
+      <td style="display:flex;gap:6px">
+        <button class="btn-icon" onclick="resetarSenhaFornecedor('${u.id}','${u.email}')">🔑 Resetar</button>
+        <button class="btn-icon danger" onclick="toggleAtivoFornecedor('${u.id}',${u.ativo})">${u.ativo?'Bloquear':'Ativar'}</button>
+      </td>
+    </tr>`).join('')}
+    </tbody></table>`;
+}
+
+function abrirModalCriarAcesso(){
+  if(!fornecedorEditando){ alertaModal('Salve o fornecedor primeiro.'); return; }
+  document.getElementById('acesso-nome').value='';
+  document.getElementById('acesso-email').value='';
+  document.getElementById('acesso-senha').value='';
+  document.getElementById('modal-criar-acesso').style.display='flex';
+}
+
+function fecharModalCriarAcesso(){
+  document.getElementById('modal-criar-acesso').style.display='none';
+}
+
+function toggleSenhaAcesso(){
+  const inp = document.getElementById('acesso-senha');
+  inp.type = inp.type==='password' ? 'text' : 'password';
+}
+
+async function criarAcessoFornecedor(){
+  const nome  = document.getElementById('acesso-nome').value.trim();
+  const email = document.getElementById('acesso-email').value.trim();
+  const senha = document.getElementById('acesso-senha').value;
+  if(!nome||!email||!senha){ alertaModal('Preencha todos os campos.'); return; }
+  if(senha.length < 6){ alertaModal('Senha mínima de 6 caracteres.'); return; }
+
+  const btn = document.getElementById('btn-criar-acesso');
+  btn.disabled=true; btn.textContent='Criando...';
+
+  try{
+    const {data:{session}} = await sb.auth.getSession();
+    const resp = await fetch(EDGE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token,
+      },
+      body: JSON.stringify({ nome, email, senha, fornecedor_id: fornecedorEditando })
+    });
+    const resultado = await resp.json();
+    btn.disabled=false; btn.textContent='Criar acesso';
+    if(!resultado.sucesso){ alertaModal(resultado.erro); return; }
+    toast('Acesso criado! E-mail: '+email,'sucesso');
+    fecharModalCriarAcesso();
+    await recarregarAcessos();
+  }catch(err){
+    btn.disabled=false; btn.textContent='Criar acesso';
+    alertaModal('Erro: '+err.message);
+  }
+}
+
+async function resetarSenhaFornecedor(userId, email){
+  const novaSenha = prompt('Nova senha para '+email+' (mínimo 6 caracteres):');
+  if(!novaSenha || novaSenha.length < 6){ toast('Senha inválida.','erro'); return; }
+  // Chama Edge Function de reset (reutilizamos a mesma)
+  const {data:{session}} = await sb.auth.getSession();
+  const resp = await fetch(EDGE_URL+'/reset', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
+    body: JSON.stringify({ usuario_id: userId, nova_senha: novaSenha })
+  });
+  const r = await resp.json();
+  if(r.sucesso) toast('Senha redefinida com sucesso!','sucesso');
+  else toast('Erro: '+r.erro,'erro');
+}
+
+async function toggleAtivoFornecedor(userId, ativo){
+  const msg = ativo ? 'Bloquear acesso deste usuário?' : 'Reativar acesso deste usuário?';
+  if(!confirm(msg)) return;
+  const {error} = await sb.from('usuarios').update({ativo:!ativo, editado_por:sessao.user.id}).eq('id',userId);
+  if(error){ toast('Erro: '+error.message,'erro'); return; }
+  toast(ativo?'Acesso bloqueado.':'Acesso reativado.','sucesso');
+  await recarregarAcessos();
+}
 
 function toast(msg,tipo='sucesso'){
   const c=document.getElementById('toast-container');const t=document.createElement('div');
