@@ -553,7 +553,7 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
 <!-- MODAL SÓCIO -->
 <div class="mmodal-overlay" id="modal-socio" onclick="if(event.target===this)fecharModalSocio()">
   <div class="mmodal" onclick="event.stopPropagation()">
-    <h3>Sócio / Representante</h3>
+    <h3 id="modal-socio-titulo">Sócio / Representante</h3>
     <input type="hidden" id="socio-id"/>
     <div class="frow" style="margin-bottom:12px">
       <div class="fg"><label>Nome *</label><input type="text" id="socio-nome" placeholder="Nome completo"/></div>
@@ -996,7 +996,7 @@ async function recarregarSocios(){
       '<td class="td2">'+(s.qualificacao||'')+'</td>' +
       '<td class="td2">'+(s.cpf_cnpj_socio||'')+'</td>' +
       '<td><button class="btn-icon" onclick="abrirModalDocSocio(\''+s.id+'\',\''+s.nome.replace(/'/g,"'")+'\')">📎 Docs</button></td>' +
-      '<td><button class="btn-icon danger" onclick="excluirSocio(\''+s.id+'\')">Excluir</button></td>' +
+      '<td style="display:flex;gap:4px"><button class="btn-icon" onclick="editarSocio(\''+s.id+'\')">Editar</button><button class="btn-icon danger" onclick="excluirSocio(\''+s.id+'\')">Excluir</button></td>' +
       '</tr>' +
       '<tr id="socio-docs-row-'+s.id+'">' +
       '<td colspan="5" style="padding:2px 0 10px 12px"><div id="socio-docs-'+s.id+'" style="font-size:12px;color:var(--text3)">—</div></td>' +
@@ -1016,16 +1016,36 @@ function abrirModalSocio(){
   document.getElementById('socio-nome').value='';
   document.getElementById('socio-qualificacao').value='';
   document.getElementById('socio-cpf-cnpj').value='';
+  document.getElementById('modal-socio-titulo').textContent='Novo sócio';
+  document.getElementById('modal-socio').classList.add('aberto');
+}
+
+async function editarSocio(id){
+  const {data:s}=await sb.from('fornecedor_socios').select('*').eq('id',id).single();
+  if(!s)return;
+  document.getElementById('socio-id').value=s.id;
+  document.getElementById('socio-nome').value=s.nome||'';
+  document.getElementById('socio-qualificacao').value=s.qualificacao||'';
+  document.getElementById('socio-cpf-cnpj').value=s.cpf_cnpj_socio||'';
+  document.getElementById('modal-socio-titulo').textContent='Editar sócio';
   document.getElementById('modal-socio').classList.add('aberto');
 }
 function fecharModalSocio(){document.getElementById('modal-socio').classList.remove('aberto');}
 
 async function salvarSocio(){
   const nome=document.getElementById('socio-nome').value.trim();
+  const id=document.getElementById('socio-id').value;
   if(!nome){alert('Informe o nome.');return;}
-  const {error}=await sb.from('fornecedor_socios').insert({fornecedor_id:fornecedorEditando,nome,qualificacao:document.getElementById('socio-qualificacao').value.trim()||null,cpf_cnpj_socio:document.getElementById('socio-cpf-cnpj').value.trim()||null,criado_por:sessao.user.id});
+  const dados={nome,qualificacao:document.getElementById('socio-qualificacao').value.trim()||null,cpf_cnpj_socio:document.getElementById('socio-cpf-cnpj').value.trim()||null};
+  let error;
+  if(id){
+    ({error}=await sb.from('fornecedor_socios').update({...dados,editado_por:sessao.user.id}).eq('id',id));
+  } else {
+    ({error}=await sb.from('fornecedor_socios').insert({fornecedor_id:fornecedorEditando,...dados,criado_por:sessao.user.id}));
+  }
   if(error){alert('Erro: '+error.message);return;}
-  toast('Sócio adicionado!','sucesso');fecharModalSocio();await recarregarSocios();
+  toast(id?'Sócio atualizado!':'Sócio adicionado!','sucesso');
+  fecharModalSocio();await recarregarSocios();
 }
 
 async function excluirSocio(id){
@@ -1175,10 +1195,14 @@ async function carregarDocsSocio(socioId){
   const {data}=await sb.from('documentos').select('*').eq('registro_id',socioId).eq('modulo','socio').eq('ativo',true).order('criado_em',{ascending:false});
   const lista=data||[];
   if(!lista.length){wrap.innerHTML='<span style="color:var(--text3)">Nenhum documento.</span>';return;}
+  const tipoLbl = id => (TIPOS_DOC_SOCIO.find(t=>t.id===id)?.label) || id || '—';
   wrap.innerHTML=lista.map(d=>
-    '<span style="display:inline-flex;align-items:center;gap:6px;margin-right:12px;margin-bottom:4px">'+
-    '<span>📎 '+d.nome_arquivo+'</span>'+
-    '<button class="btn-icon" onclick="baixarArquivo(\''+d.drive_id+'\',\''+encodeURIComponent(d.nome_arquivo||'arquivo')+'\')">⬇</button>'+
+    '<span style="display:inline-flex;align-items:center;gap:5px;margin-right:8px;margin-bottom:5px;'+
+    'background:var(--navy3);border:1px solid var(--border);border-radius:6px;padding:3px 8px">'+
+    '<span style="font-size:11px;font-weight:600;color:var(--blue2)">'+tipoLbl(d.tipo)+'</span>'+
+    '<span style="font-size:11px;color:var(--text2)">'+d.nome_arquivo+'</span>'+
+    (d.descricao?'<span style="font-size:10px;color:var(--text3);font-style:italic">'+d.descricao+'</span>':'')+
+    '<button class="btn-icon" style="padding:1px 5px;font-size:11px" onclick="baixarArquivo(\''+d.drive_id+'\',\''+encodeURIComponent(d.nome_arquivo||'arquivo')+'\')">⬇</button>'+
     '</span>'
   ).join('');
 }
