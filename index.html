@@ -2517,43 +2517,37 @@ function mostrarToast(msg, tipo = 'sucesso') {
 // ══════════════════════════════════════════
 // SIDEBAR
 // ══════════════════════════════════════════
-const GRUPOS_SIDEBAR = [
-  {
-    id: 'fornecedores', nome: 'Fornecedores', icon: '🏢',
-    modulos: ['cadastro_fornecedor', 'portal_fornecedor']
-  },
-  {
-    id: 'contratos', nome: 'Contratos', icon: '📄',
-    modulos: ['solicitacao_contratos', 'elaboracao_contratos', 'gestao_contratos']
-  },
-  {
-    id: 'medicoes', nome: 'Medições', icon: '📊',
-    modulos: ['medicoes', 'assinatura_medicoes']
-  },
-  {
-    id: 'financeiro', nome: 'Financeiro', icon: '💰',
-    modulos: ['contas_pagar', 'status_pagamentos']
-  },
-  {
-    id: 'frota', nome: 'Frota & Operação', icon: '🚛',
-    modulos: ['gestao_frota', 'escaner_diario']
-  },
-];
-
+// Grupos carregados do banco
+let _gruposBanco = [];
 let _sidebarAberta = localStorage.getItem('sigecon_sidebar') !== 'colapsada';
-let _gruposAbertos = JSON.parse(localStorage.getItem('sigecon_grupos') || '["contratos","fornecedores"]');
+let _gruposAbertos = JSON.parse(localStorage.getItem('sigecon_grupos') || '[]');
+
+async function carregarGruposSidebar() {
+  const { data } = await sb
+    .from('sidebar_grupos')
+    .select('*, sidebar_grupo_modulos(modulo_id, ordem)')
+    .eq('ativo', true)
+    .order('ordem');
+  _gruposBanco = data || [];
+}
 
 function renderizarSidebar() {
   const body = document.getElementById('sidebar-body');
   if (!body) return;
 
-  // Filtra módulos que o usuário tem acesso
   const modulosPermitidos = new Set(
     MODULOS.filter(m => MODULO_URLS[m.id]).map(m => m.id)
   );
 
-  body.innerHTML = GRUPOS_SIDEBAR.map(grupo => {
-    const itens = grupo.modulos
+  if (!_gruposBanco.length) {
+    body.innerHTML = '<div style="padding:16px 12px;font-size:12px;color:var(--text3)">Nenhum grupo configurado.</div>';
+    return;
+  }
+
+  body.innerHTML = _gruposBanco.map(grupo => {
+    const itens = (grupo.sidebar_grupo_modulos || [])
+      .sort((a,b) => a.ordem - b.ordem)
+      .map(v => v.modulo_id)
       .filter(mid => modulosPermitidos.has(mid))
       .map(mid => {
         const mod = MODULOS.find(m => m.id === mid);
@@ -2563,12 +2557,12 @@ function renderizarSidebar() {
         </div>`;
       }).join('');
 
-    if (!itens) return ''; // Grupo sem módulos visíveis — oculta
+    if (!itens) return '';
 
     const aberto = _gruposAbertos.includes(grupo.id);
     return `<div class="sb-grupo ${aberto ? 'aberto' : ''}" id="sbg-${grupo.id}">
       <div class="sb-grupo-header" onclick="toggleGrupo('${grupo.id}')">
-        <div class="sb-grupo-icon">${grupo.icon}</div>
+        <div class="sb-grupo-icon">${grupo.icone || '📁'}</div>
         <span class="sb-grupo-nome">${grupo.nome}</span>
         <span class="sb-grupo-seta">▶</span>
       </div>
