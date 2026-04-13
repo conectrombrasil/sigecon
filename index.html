@@ -1873,6 +1873,9 @@ async function mostrarModulos() {
     modulosVisiveis = MODULOS.filter(m => idsPermitidos.has(m.id));
   }
 
+  // Salva globalmente para a sidebar usar
+  _modulosVisiveis = new Set(modulosVisiveis.map(m => m.id));
+
   if (!modulosVisiveis.length) {
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--text3);font-size:14px">Nenhum módulo disponível para seu usuário.<br>Solicite ao administrador.</div>';
     return;
@@ -2519,6 +2522,7 @@ function mostrarToast(msg, tipo = 'sucesso') {
 // ══════════════════════════════════════════
 // Grupos carregados do banco
 let _gruposBanco = [];
+let _modulosVisiveis = new Set(); // módulos que o usuário logado tem acesso
 let _sidebarAberta = localStorage.getItem('sigecon_sidebar') !== 'colapsada';
 let _gruposAbertos = JSON.parse(localStorage.getItem('sigecon_grupos') || '[]');
 
@@ -2535,9 +2539,10 @@ function renderizarSidebar() {
   const body = document.getElementById('sidebar-body');
   if (!body) return;
 
-  const modulosPermitidos = new Set(
-    MODULOS.filter(m => MODULO_URLS[m.id]).map(m => m.id)
-  );
+  // Usa permissões reais do usuário (calculadas em mostrarModulos)
+  const modulosPermitidos = _modulosVisiveis.size > 0
+    ? _modulosVisiveis
+    : new Set(MODULOS.filter(m => MODULO_URLS[m.id]).map(m => m.id));
 
   if (!_gruposBanco.length) {
     body.innerHTML = '<div style="padding:16px 12px;font-size:12px;color:var(--text3)">Nenhum grupo configurado.</div>';
