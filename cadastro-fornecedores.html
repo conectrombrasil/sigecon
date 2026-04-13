@@ -1526,6 +1526,7 @@ async function criarAcessoFornecedor(){
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + session.access_token,
+        'apikey': SUPABASE_KEY,
       },
       body: JSON.stringify({ nome, email, senha, fornecedor_id: fornecedorEditando })
     });
@@ -1548,7 +1549,7 @@ async function resetarSenhaFornecedor(userId, email){
   const {data:{session}} = await sb.auth.getSession();
   const resp = await fetch(EDGE_URL+'/reset', {
     method: 'POST',
-    headers: {'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':SUPABASE_KEY},
     body: JSON.stringify({ usuario_id: userId, nova_senha: novaSenha })
   });
   const r = await resp.json();
