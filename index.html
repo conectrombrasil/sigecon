@@ -1833,6 +1833,9 @@ async function mostrarObras() {
       <span class="status-dot ${o.status !== 'ativa' ? 'inativa' : ''}">${o.status}</span>
     </div>
   `).join('');
+
+  // Renderiza obras também na sidebar
+  renderizarSidebarObras(obras);
 }
 
 function selecionarObra(obra) {
@@ -1841,7 +1844,6 @@ function selecionarObra(obra) {
   document.getElementById('obra-ativa-nome').textContent = obra.nome;
   document.getElementById('obra-ativa-local').textContent =
     [obra.cidade, obra.estado].filter(Boolean).join(' — ') || 'Localização não informada';
-
   mostrarModulos();
 }
 
@@ -1850,6 +1852,8 @@ function voltarParaObras() {
   document.getElementById('obra-nome-topbar').textContent = 'Selecionar obra';
   document.getElementById('tela-modulos').style.display = 'none';
   mostrarObras();
+  // Sidebar volta a mostrar obras
+  renderizarSidebarObras(_cacheObras || []);
 }
 
 async function mostrarModulos() {
@@ -1874,16 +1878,73 @@ async function mostrarModulos() {
     return;
   }
 
-  grid.innerHTML = modulosVisiveis.map(m => `
-    <div class="modulo-card fade-in" onclick="abrirModulo('${m.id}')">
-      <div class="modulo-icon">${m.icon}</div>
-      <h3>${m.nome}</h3>
-      <p class="modulo-tag">${m.tag}</p>
-    </div>
-  `).join('');
+  // Carrega grupos para montar grid agrupado
+  const { data: grupos } = await sb
+    .from('sidebar_grupos')
+    .select('*, sidebar_grupo_modulos(modulo_id, ordem)')
+    .eq('ativo', true)
+    .order('ordem');
 
-  // Renderiza sidebar com os módulos disponíveis
-  iniciarSidebar();
+  const modulosPermitidosSet = new Set(modulosVisiveis.map(m => m.id));
+
+  let htmlGrid = '';
+  let modulosAgrupados = new Set();
+
+  if (grupos?.length) {
+    grupos.forEach(grupo => {
+      const itensGrupo = (grupo.sidebar_grupo_modulos || [])
+        .sort((a,b) => a.ordem - b.ordem)
+        .map(v => v.modulo_id)
+        .filter(mid => modulosPermitidosSet.has(mid))
+        .map(mid => MODULOS.find(m => m.id === mid))
+        .filter(Boolean);
+
+      if (!itensGrupo.length) return;
+      itensGrupo.forEach(m => modulosAgrupados.add(m.id));
+
+      htmlGrid += `
+        <div style="grid-column:1/-1;margin:8px 0 4px">
+          <div style="font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;
+            letter-spacing:2px;text-transform:uppercase;color:var(--text3);
+            display:flex;align-items:center;gap:8px;padding-bottom:8px;
+            border-bottom:1px solid var(--border)">
+            <span>${grupo.icone||'📁'}</span>${grupo.nome}
+          </div>
+        </div>
+        ${itensGrupo.map(m => `
+          <div class="modulo-card fade-in" onclick="abrirModulo('${m.id}')">
+            <div class="modulo-icon">${m.icon}</div>
+            <h3>${m.nome}</h3>
+            <p class="modulo-tag">${m.tag}</p>
+          </div>`).join('')}`;
+    });
+  }
+
+  // Módulos sem grupo
+  const semGrupo = modulosVisiveis.filter(m => !modulosAgrupados.has(m.id));
+  if (semGrupo.length) {
+    htmlGrid += `
+      <div style="grid-column:1/-1;margin:8px 0 4px">
+        <div style="font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;
+          letter-spacing:2px;text-transform:uppercase;color:var(--text3);
+          display:flex;align-items:center;gap:8px;padding-bottom:8px;
+          border-bottom:1px solid var(--border)">
+          <span>📦</span>Outros
+        </div>
+      </div>
+      ${semGrupo.map(m => `
+        <div class="modulo-card fade-in" onclick="abrirModulo('${m.id}')">
+          <div class="modulo-icon">${m.icon}</div>
+          <h3>${m.nome}</h3>
+          <p class="modulo-tag">${m.tag}</p>
+        </div>`).join('')}`;
+  }
+
+  grid.innerHTML = htmlGrid || '<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--text3)">Nenhum módulo disponível.</div>';
+
+  // Atualiza sidebar com grupos (force reload do banco)
+  await carregarGruposSidebar();
+  renderizarSidebar();
 }
 
 const MODULO_URLS = {
