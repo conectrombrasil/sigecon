@@ -1060,6 +1060,39 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
   .tela-conteudo.sidebar-colapsada { margin-left: 52px; }
   .tela-conteudo.sidebar-fechada { margin-left: 0; }
   /* Separador */
+  .sb-obras-header {
+    padding: 8px 12px 4px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text3);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .sidebar.colapsada .sb-obras-header span { display: none; }
+  .sb-obra-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text2);
+    transition: all 0.15s;
+    border-radius: 6px;
+    margin: 1px 6px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .sb-obra-item:hover { background: rgba(46,123,196,0.08); color: var(--text); }
+  .sb-obra-item.ativa { background: rgba(46,123,196,0.15); color: var(--blue2); border-left: 2px solid var(--blue); }
+  .sb-obra-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+  .sb-obra-dot.inativa { background: var(--text3); }
+  .sidebar.colapsada .sb-obra-item span { display: none; }
+  .sb-obras-sep { height: 1px; background: var(--border); margin: 8px 12px; }
+
   .sb-sep {
     height: 1px;
     background: var(--border);
@@ -1844,6 +1877,8 @@ function selecionarObra(obra) {
   document.getElementById('obra-ativa-nome').textContent = obra.nome;
   document.getElementById('obra-ativa-local').textContent =
     [obra.cidade, obra.estado].filter(Boolean).join(' — ') || 'Localização não informada';
+  // Atualizar destaque da obra ativa na sidebar
+  renderizarSidebarObras(_cacheObras || []);
   mostrarModulos();
 }
 
@@ -2533,6 +2568,48 @@ async function carregarGruposSidebar() {
     .eq('ativo', true)
     .order('ordem');
   _gruposBanco = data || [];
+}
+
+function renderizarSidebarObras(obras) {
+  const body = document.getElementById('sidebar-body');
+  if (!body) return;
+
+  // Remover seção de obras anterior se existir
+  const anterior = body.querySelector('.sb-obras-bloco');
+  if (anterior) anterior.remove();
+
+  if (!obras || !obras.length) return;
+
+  const bloco = document.createElement('div');
+  bloco.className = 'sb-obras-bloco';
+
+  const itensHtml = obras.map(o => {
+    const ativa = obraAtiva && obraAtiva.id === o.id ? 'ativa' : '';
+    const dotClass = o.status !== 'ativa' ? 'inativa' : '';
+    const nomeEscapado = (o.nome || '').replace(/'/g, "\'");
+    return '<div class="sb-obra-item ' + ativa + '" onclick="selecionarObraSidebar('' + o.id + '')" title="' + (o.nome||'') + '">' +
+      '<div class="sb-obra-dot ' + dotClass + '"></div>' +
+      '<span>' + (o.nome || '—') + '</span>' +
+      '</div>';
+  }).join('');
+
+  bloco.innerHTML =
+    '<div class="sb-obras-sep"></div>' +
+    '<div class="sb-obras-header">' +
+      '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>' +
+      '<span>Obras</span>' +
+    '</div>' +
+    itensHtml;
+
+  body.appendChild(bloco);
+}
+
+function selecionarObraSidebar(obraId) {
+  const obra = (_cacheObras || []).find(o => o.id === obraId);
+  if (!obra) return;
+  selecionarObra(obra);
+  // Atualizar destaque na sidebar
+  renderizarSidebarObras(_cacheObras || []);
 }
 
 function renderizarSidebar() {
