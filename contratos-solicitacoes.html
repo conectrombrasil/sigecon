@@ -119,7 +119,11 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .chat-msg.minha .chat-bubble{background:rgba(46,123,196,0.15);border-color:rgba(46,123,196,0.3);border-radius:12px 12px 2px 12px;}
 .chat-bubble-nome{font-size:10px;font-weight:600;letter-spacing:0.5px;color:var(--blue2);margin-bottom:4px;text-transform:uppercase;}
 .chat-bubble-texto{font-size:13px;color:var(--text);line-height:1.5;word-break:break-word;}
-.chat-bubble-hora{font-size:10px;color:var(--text3);margin-top:5px;text-align:right;}
+.chat-bubble-hora{font-size:10px;color:var(--text3);margin-top:5px;text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:4px;}
+.chat-tick{font-size:12px;line-height:1;}
+.chat-tick.enviado{color:var(--text3);}
+.chat-tick.entregue{color:var(--text3);}
+.chat-tick.visualizado{color:#4FC3F7;}
 .chat-bubble-sistema{background:rgba(224,168,48,0.08);border:1px solid rgba(224,168,48,0.2);border-radius:8px;padding:8px 12px;text-align:center;font-size:11px;color:var(--warning);margin:0 auto;max-width:90%;}
 .chat-bubble-midia{margin-top:6px;}
 .chat-bubble-midia img{max-width:100%;border-radius:6px;cursor:pointer;}
@@ -957,12 +961,17 @@ async function carregarChat(solicitacaoId) {
 
   const { data, error } = await sb
     .from('solicitacoes_mensagens')
-    .select('*,autor:usuarios!solicitacoes_mensagens_autor_id_fkey(nome)')
+    .select('*,autor:usuarios!solicitacoes_mensagens_autor_id_fkey(nome),leituras:solicitacoes_mensagens_leituras(usuario_id)')
     .eq('solicitacao_id', solicitacaoId)
     .order('criado_em');
 
   if (error) { el.innerHTML = '<div class="chat-vazio">Erro ao carregar mensagens.</div>'; return; }
-  renderizarMensagens(data || []);
+
+  // Marcar como lidas as mensagens dos outros que ainda não foram lidas
+  _marcarMensagensLidas(data || []);
+
+  const msgsEnriquecidas = _resolverEstadoEntrega(data || []);
+  renderizarMensagens(msgsEnriquecidas);
   scrollChatFim();
 
   // Badge na tab
@@ -1018,14 +1027,38 @@ function renderMensagem(m) {
     if (m.conteudo) conteudo += '<div class="chat-bubble-texto" style="margin-top:4px">' + nl2br(m.conteudo) + '</div>';
   }
 
-  const nomeHtml = !minha ? '<div class="chat-bubble-nome">' + nome + '</div>' : '';
+  const nomeHtml = '<div class="chat-bubble-nome">' + (minha ? 'Você' : nome) + '</div>';
   return '<div class="chat-msg' + (minha ? ' minha' : '') + '">' +
     '<div class="chat-avatar" style="background:' + cor + ';color:#fff">' + ini + '</div>' +
+    // Ticks: só nas minhas mensagens
+    let tickHtml = '';
+    if (minha) {
+      const leituras = (m.leituras || []).filter(l => l.usuario_id !== sessao.user.id);
+      let tickClass, tickSymbol;
+      if (leituras.length > 0) {
+        tickClass = 'visualizado'; tickSymbol = '✓✓';
+      } else if (m._entregue) {
+        tickClass = 'entregue'; tickSymbol = '✓✓';
+      } else {
+        tickClass = 'enviado'; tickSymbol = '✓';
+      }
+      tickHtml = '<span class="chat-tick ' + tickClass + '">' + tickSymbol + '</span>';
+    }
+
     '<div class="chat-bubble">' + nomeHtml + conteudo +
-    '<div class="chat-bubble-hora">' + data + ' ' + hora + '</div></div></div>';
+    '<div class="chat-bubble-hora">' + data + ' ' + hora + tickHtml + '</div></div></div>';
 }
 
 function assinarChat(solicitacaoId) {
+  // Canal de leituras — atualiza ticks quando outro usuário lê
+  sb.channel('leituras-' + solicitacaoId)
+    .on('postgres_changes', {
+      event: 'INSERT', schema: 'public',
+      table: 'solicitacoes_mensagens_leituras',
+    }, async () => {
+      if (solAtual && solAtual.id === solicitacaoId) await carregarChat(solicitacaoId);
+    }).subscribe();
+
   chatSubscription = sb
     .channel('chat-' + solicitacaoId)
     .on('postgres_changes', {
@@ -1041,6 +1074,14 @@ function assinarChat(solicitacaoId) {
       // Remover "vazio" se presente
       const vazio = el.querySelector('.chat-vazio');
       if (vazio) vazio.remove();
+      // Se aba Mensagens está aberta e msg é de outro, marcar como lida
+      if (tabAtiva === 'chat' && msg.autor_id !== sessao.user.id) {
+        await sb.from('solicitacoes_mensagens_leituras').upsert(
+          [{ mensagem_id: msg.id, usuario_id: sessao.user.id }],
+          { onConflict: 'mensagem_id,usuario_id', ignoreDuplicates: true }
+        );
+        msg.leituras = [{ usuario_id: sessao.user.id }];
+      }
       el.insertAdjacentHTML('beforeend', renderMensagem(msg));
       scrollChatFim();
       // Badge se chat não estiver aberto
@@ -1191,6 +1232,32 @@ async function _carregarImgChat(imgId, driveId) {
     if (imgEl) imgEl.style.display = 'none';
     if (loadEl) loadEl.textContent = '⚠️ Não foi possível carregar a imagem.';
   }
+}
+
+// Marcar como lidas as mensagens dos outros (não as minhas)
+async function _marcarMensagensLidas(msgs) {
+  const naoLidas = (msgs || []).filter(m =>
+    m.autor_id !== sessao.user.id &&
+    m.tipo !== 'sistema' &&
+    !(m.leituras || []).some(l => l.usuario_id === sessao.user.id)
+  );
+  if (!naoLidas.length) return;
+  // Inserir leituras — ignora conflito (unique constraint)
+  await sb.from('solicitacoes_mensagens_leituras').upsert(
+    naoLidas.map(m => ({ mensagem_id: m.id, usuario_id: sessao.user.id })),
+    { onConflict: 'mensagem_id,usuario_id', ignoreDuplicates: true }
+  );
+}
+
+// Marcar entregue quando o outro usuário abre o modal (carrega o chat)
+// Fazemos isso atualizando um campo _entregue via leituras —
+// qualquer leitura existente de qualquer usuário = entregue para o remetente
+function _resolverEstadoEntrega(msgs) {
+  // Enriquecer cada msg com _entregue = true se há pelo menos 1 leitura de outro usuário
+  return (msgs || []).map(m => ({
+    ...m,
+    _entregue: (m.leituras || []).length > 0,
+  }));
 }
 
 function scrollChatFim() {
