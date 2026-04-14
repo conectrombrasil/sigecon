@@ -3193,18 +3193,23 @@ function csAssinarNaoLidas() {
 async function csAtualizarBadgeTotal() {
   if (!sessaoUsuario) return;
   const isAdm = ['admin','gestor'].includes(dadosUsuario?.perfis?.nome);
-  let convIds = [];
-  if (!isAdm) {
-    const {data:convs}=await sb.from('chat_suporte_conversas').select('id').eq('criado_por',sessaoUsuario.user.id);
-    convIds = (convs||[]).map(c=>c.id);
-    if (!convIds.length) { csAtualizarBadge(0); return; }
-  }
-  let q = sb.from('chat_suporte_mensagens')
+
+  // Buscar IDs das conversas acessíveis (admin vê todas, operador vê as suas)
+  let convQuery = sb.from('chat_suporte_conversas').select('id');
+  if (!isAdm) convQuery = convQuery.eq('criado_por', sessaoUsuario.user.id);
+  const { data: convs } = await convQuery;
+  const convIds = (convs || []).map(c => c.id);
+  if (!convIds.length) { csAtualizarBadge(0); return; }
+
+  // Buscar mensagens dessas conversas que não são minhas
+  const { data } = await sb.from('chat_suporte_mensagens')
     .select('id,leituras:chat_suporte_leituras(usuario_id)')
-    .neq('autor_id',sessaoUsuario.user.id);
-  if (!isAdm) q = q.in('conversa_id', convIds);
-  const {data}=await q;
-  const total=(data||[]).filter(m=>!(m.leituras||[]).some(l=>l.usuario_id===sessaoUsuario.user.id)).length;
+    .in('conversa_id', convIds)
+    .neq('autor_id', sessaoUsuario.user.id);
+
+  const total = (data||[]).filter(m =>
+    !(m.leituras||[]).some(l => l.usuario_id === sessaoUsuario.user.id)
+  ).length;
   csAtualizarBadge(total);
 }
 
