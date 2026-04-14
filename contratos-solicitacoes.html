@@ -106,12 +106,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .modal-tab:hover{color:var(--text2);}
 .modal-tab.ativo{color:var(--blue2);border-bottom-color:var(--blue);}
 .modal-tab-badge{background:var(--blue);color:#fff;border-radius:20px;padding:1px 6px;font-size:10px;font-weight:600;}
-.modal-content{flex:1;overflow-y:auto;padding:20px 28px;}
+.modal-content{flex:1;overflow-y:auto;padding:20px 28px;display:flex;flex-direction:column;}
 .modal-footer{padding:16px 28px;border-top:1px solid var(--border);flex-shrink:0;}
 
 /* ── CHAT ─────────────────────────────────────────────────── */
-.chat-area{display:flex;flex-direction:column;height:100%;}
-.chat-msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding-bottom:8px;min-height:220px;max-height:340px;}
+.chat-area{display:flex;flex-direction:column;flex:1;min-height:0;}
+.chat-msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding-bottom:8px;min-height:0;}
 .chat-msg{display:flex;gap:10px;align-items:flex-end;animation:fadeUp 0.2s ease;}
 .chat-msg.minha{flex-direction:row-reverse;}
 .chat-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;flex-shrink:0;border:2px solid var(--border2);}
@@ -143,6 +143,19 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .chat-preview{display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(46,123,196,0.08);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;font-size:12px;color:var(--text2);}
 .chat-preview-remove{margin-left:auto;cursor:pointer;color:var(--danger);background:none;border:none;font-size:16px;padding:0 2px;}
 .chat-vazio{text-align:center;padding:32px;color:var(--text3);font-size:12px;}
+.chat-participantes-btn{background:transparent;border:1px solid var(--border);border-radius:7px;padding:4px 10px;color:var(--text3);font-size:11px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all 0.2s;margin-left:auto;}
+.chat-participantes-btn:hover{border-color:var(--blue);color:var(--blue2);}
+.chat-participantes-popover{position:absolute;top:100%;right:0;margin-top:6px;background:var(--navy2);border:1px solid var(--border2);border-radius:10px;padding:14px;min-width:220px;box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:50;display:none;}
+.chat-participantes-popover.aberto{display:block;}
+.chat-part-title{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
+.chat-part-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);}
+.chat-part-item:last-child{border-bottom:none;}
+.chat-part-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+.chat-part-info{flex:1;min-width:0;}
+.chat-part-nome{font-size:12px;font-weight:500;color:var(--text);}
+.chat-part-perfil{font-size:10px;color:var(--text3);}
+.chat-part-tag{font-size:9px;padding:1px 6px;border-radius:20px;background:rgba(46,123,196,0.12);color:var(--blue2);border:1px solid rgba(46,123,196,0.2);}
+.chat-participantes-wrap{position:relative;display:flex;align-items:center;}
 .chat-bloqueado{text-align:center;padding:12px;color:var(--text3);font-size:12px;background:rgba(77,107,133,0.1);border:1px solid var(--border);border-radius:8px;margin-top:12px;}
 
 /* Modal reprovar */
@@ -364,6 +377,16 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
         Mensagens
         <span class="modal-tab-badge" id="chat-badge" style="display:none">0</span>
       </div>
+      <div class="chat-participantes-wrap" style="margin-left:auto;padding:0 12px 0 0;">
+        <button class="chat-participantes-btn" id="btn-participantes" onclick="toggleParticipantes(event)" title="Ver participantes">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          <span id="participantes-count">Participantes</span>
+        </button>
+        <div class="chat-participantes-popover" id="participantes-popover">
+          <div class="chat-part-title">Participantes da conversa</div>
+          <div id="participantes-lista"><span style="font-size:12px;color:var(--text3)">Carregando...</span></div>
+        </div>
+      </div>
     </div>
     <!-- TAB DETALHES -->
     <div class="modal-content" id="tab-content-detalhes">
@@ -372,7 +395,7 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
       <div class="audit-info" id="modal-audit"></div>
     </div>
     <!-- TAB CHAT -->
-    <div class="modal-content" id="tab-content-chat" style="display:none">
+    <div class="modal-content" id="tab-content-chat" style="display:none;flex-direction:column;">
       <div class="chat-area">
         <div class="chat-msgs" id="chat-msgs"></div>
         <div class="chat-input-area" id="chat-input-area">
@@ -546,6 +569,7 @@ function abrirTab(tab) {
   if (tab === 'chat') {
     document.getElementById('chat-badge').style.display = 'none';
     setTimeout(() => scrollChatFim(), 50);
+    if (solAtual) carregarParticipantes(solAtual.id);
   }
 }
 
@@ -1265,6 +1289,71 @@ function _resolverEstadoEntrega(msgs) {
   }));
 }
 
+// ── Participantes ────────────────────────────────────────
+async function carregarParticipantes(solicitacaoId) {
+  const lista = document.getElementById('participantes-lista');
+  const count = document.getElementById('participantes-count');
+  if (!lista) return;
+
+  try {
+    // Buscar criador da solicitação
+    const { data: sol } = await sb
+      .from('solicitacoes_contratos')
+      .select('criado_por, criado_por_usr:usuarios!solicitacoes_contratos_criado_por_fkey(id,nome,perfis(nome))')
+      .eq('id', solicitacaoId).single();
+
+    // Buscar admins e gestores da obra
+    const { data: admins } = await sb
+      .from('usuarios')
+      .select('id,nome,perfis(nome)')
+      .in('perfis.nome', ['admin','gestor'])
+      .not('id', 'eq', sol?.criado_por || '');
+
+    // Montar lista única
+    const participantes = [];
+    if (sol?.criado_por_usr) {
+      participantes.push({ ...sol.criado_por_usr, tag: 'Solicitante' });
+    }
+    (admins || []).forEach(u => {
+      if (!participantes.find(p => p.id === u.id)) {
+        participantes.push({ ...u, tag: u.perfis?.nome || '' });
+      }
+    });
+
+    if (count) count.textContent = participantes.length + ' participante' + (participantes.length !== 1 ? 's' : '');
+
+    lista.innerHTML = participantes.map(p => {
+      const ini = (p.nome || '?').charAt(0).toUpperCase();
+      const cor = _corAvatar(p.id);
+      return '<div class="chat-part-item">'
+        + '<div class="chat-part-avatar" style="background:' + cor + '">' + ini + '</div>'
+        + '<div class="chat-part-info">'
+        + '<div class="chat-part-nome">' + (p.nome || '—') + (p.id === sessao.user.id ? ' <span style="font-size:10px;color:var(--text3)">(você)</span>' : '') + '</div>'
+        + '<div class="chat-part-perfil">' + (p.perfis?.nome || '') + '</div>'
+        + '</div>'
+        + '<span class="chat-part-tag">' + p.tag + '</span>'
+        + '</div>';
+    }).join('') || '<span style="font-size:12px;color:var(--text3)">Nenhum participante encontrado.</span>';
+
+  } catch (err) {
+    lista.innerHTML = '<span style="font-size:12px;color:var(--text3)">Erro ao carregar.</span>';
+  }
+}
+
+function toggleParticipantes(e) {
+  e.stopPropagation();
+  const pop = document.getElementById('participantes-popover');
+  if (!pop) return;
+  const aberto = pop.classList.toggle('aberto');
+  if (aberto && solAtual) carregarParticipantes(solAtual.id);
+}
+
+// Fechar popover ao clicar fora
+document.addEventListener('click', () => {
+  const pop = document.getElementById('participantes-popover');
+  if (pop) pop.classList.remove('aberto');
+});
+
 function scrollChatFim() {
   const el = document.getElementById('chat-msgs');
   if (el) el.scrollTop = el.scrollHeight;
@@ -1309,6 +1398,8 @@ function fecharForm() {
 
 function fecharModal() {
   document.getElementById('modal').classList.remove('aberto');
+  const pop = document.getElementById('participantes-popover');
+  if (pop) pop.classList.remove('aberto');
   if (chatSubscription) { sb.removeChannel(chatSubscription); chatSubscription = null; }
   if (leiturasSubscription) { sb.removeChannel(leiturasSubscription); leiturasSubscription = null; }
 }
