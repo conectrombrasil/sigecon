@@ -3280,17 +3280,21 @@ async function csCarregarMsgs(convId) {
     .select('*,autor:usuarios!chat_suporte_mensagens_autor_id_fkey(nome),leituras:chat_suporte_leituras(usuario_id)')
     .eq('conversa_id', convId).order('criado_em');
   if (error) { el.innerHTML = '<div class="cs-vazio">Erro.</div>'; return; }
-  const naoLidas = (data||[]).filter(m =>
-    m.autor_id !== sessaoUsuario.user.id && m.tipo !== 'sistema' &&
-    !(m.leituras||[]).some(l => l.usuario_id === sessaoUsuario.user.id));
-  if (naoLidas.length) {
-    await sb.from('chat_suporte_leituras').upsert(
-      naoLidas.map(m => ({ mensagem_id: m.id, usuario_id: sessaoUsuario.user.id })),
-      { onConflict: 'mensagem_id,usuario_id', ignoreDuplicates: true });
-  }
   if (!data?.length) { el.innerHTML = '<div class="cs-vazio">Nenhuma mensagem ainda.</div>'; return; }
   el.innerHTML = (data||[]).map(m => csRenderMsg(m)).join('');
   csScrollFim();
+
+  // Marcar como lidas APENAS se o drawer está aberto (usuário vendo a conversa)
+  if (csAberto) {
+    const naoLidas = (data||[]).filter(m =>
+      m.autor_id !== sessaoUsuario.user.id && m.tipo !== 'sistema' &&
+      !(m.leituras||[]).some(l => l.usuario_id === sessaoUsuario.user.id));
+    if (naoLidas.length) {
+      await sb.from('chat_suporte_leituras').upsert(
+        naoLidas.map(m => ({ mensagem_id: m.id, usuario_id: sessaoUsuario.user.id })),
+        { onConflict: 'mensagem_id,usuario_id', ignoreDuplicates: true });
+    }
+  }
   await csAtualizarBadgeTotal();
 }
 
