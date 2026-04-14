@@ -1132,7 +1132,21 @@ function onChatFileSelected() {
   chatAnexoPendente = { arquivo: arq, nome: arq.name, mimeType: arq.type || 'application/octet-stream', tamanho: arq.size };
   const prev = document.getElementById('chat-preview');
   prev.style.display = 'flex';
-  prev.innerHTML = `${iconeDocPorMime(arq.type)} <span>${arq.name} (${formatarTamanho(arq.size)})</span><button class="chat-preview-remove" onclick="removerAnexoChat()">×</button>`;
+
+  // Se for imagem, mostrar thumbnail; caso contrário, ícone+nome
+  if (arq.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      prev.innerHTML = '<img src="' + e.target.result + '" style="height:56px;border-radius:6px;object-fit:cover;max-width:80px;"/>'
+        + '<span style="flex:1">' + arq.name + ' (' + formatarTamanho(arq.size) + ')</span>'
+        + '<button class="chat-preview-remove" onclick="removerAnexoChat()">×</button>';
+    };
+    reader.readAsDataURL(arq);
+  } else {
+    prev.innerHTML = iconeDocPorMime(arq.type)
+      + ' <span>' + arq.name + ' (' + formatarTamanho(arq.size) + ')</span>'
+      + '<button class="chat-preview-remove" onclick="removerAnexoChat()">×</button>';
+  }
   input.value = '';
 }
 
@@ -1156,7 +1170,12 @@ async function toggleGravacao() {
       clearInterval(gravandoTimer);
       gravandoSeg = 0;
       document.getElementById('chat-gravando-info').style.display = 'none';
-      document.getElementById('btn-gravar').classList.remove('gravando');
+      const btnG = document.getElementById('btn-gravar');
+      btnG.classList.remove('gravando');
+      btnG.title = 'Gravar áudio';
+      // Restaurar ícone do microfone
+      btnG.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+      mostrarToast('Processando áudio...', 'sucesso');
       stream.getTracks().forEach(t => t.stop());
 
       const blob   = new Blob(audioChunks, { type: 'audio/webm' });
@@ -1181,19 +1200,26 @@ async function toggleGravacao() {
           drive_url:    result.dados.driveUrl,
           nome_arquivo: nome,
         });
+        mostrarToast('Áudio enviado!', 'sucesso');
+        await carregarChat(solAtual.id); // atualizar chat após envio
       } catch (err) {
+        console.error('Erro áudio:', err);
         mostrarToast('Erro ao enviar áudio: ' + err.message, 'erro');
       }
     };
 
     mediaRecorder.start();
-    document.getElementById('btn-gravar').classList.add('gravando');
+    const btnGravar = document.getElementById('btn-gravar');
+    btnGravar.classList.add('gravando');
+    btnGravar.title = 'Parar gravação';
+    // Ícone vira quadrado (stop) durante gravação
+    btnGravar.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="var(--danger)" stroke="var(--danger)" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>';
     document.getElementById('chat-gravando-info').style.display = 'flex';
     gravandoSeg = 0;
     gravandoTimer = setInterval(() => {
       gravandoSeg++;
       document.getElementById('chat-gravando-tempo').textContent = gravandoSeg + 's';
-      if (gravandoSeg >= 120) { mediaRecorder.stop(); } // máx 2 min
+      if (gravandoSeg >= 120) { mediaRecorder.stop(); }
     }, 1000);
 
   } catch (err) {
