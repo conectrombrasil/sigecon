@@ -133,13 +133,11 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .chat-input-row textarea::placeholder{color:var(--text3);}
 .chat-btn-icon{width:38px;height:38px;background:var(--navy3);border:1px solid var(--border);border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
 .chat-btn-icon:hover{border-color:var(--blue);background:rgba(46,123,196,0.1);}
-.chat-btn-icon.gravando{background:rgba(224,85,85,0.15);border-color:rgba(224,85,85,0.4);animation:pulso 1s ease infinite;}
 .chat-btn-enviar{width:38px;height:38px;background:var(--blue);border:none;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
 .chat-btn-enviar:hover{background:var(--blue2);}
 .chat-btn-enviar:disabled{opacity:0.5;cursor:not-allowed;}
 .chat-preview{display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(46,123,196,0.08);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;font-size:12px;color:var(--text2);}
 .chat-preview-remove{margin-left:auto;cursor:pointer;color:var(--danger);background:none;border:none;font-size:16px;padding:0 2px;}
-.chat-gravando-info{font-size:11px;color:var(--danger);display:flex;align-items:center;gap:6px;margin-bottom:8px;}
 .chat-vazio{text-align:center;padding:32px;color:var(--text3);font-size:12px;}
 .chat-bloqueado{text-align:center;padding:12px;color:var(--text3);font-size:12px;background:rgba(77,107,133,0.1);border:1px solid var(--border);border-radius:8px;margin-top:12px;}
 
@@ -375,10 +373,7 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
         <div class="chat-msgs" id="chat-msgs"></div>
         <div class="chat-input-area" id="chat-input-area">
           <div id="chat-preview" style="display:none"></div>
-          <div id="chat-gravando-info" style="display:none" class="chat-gravando-info">
-            <span style="width:8px;height:8px;background:var(--danger);border-radius:50%;display:inline-block;animation:pulso 1s infinite"></span>
-            Gravando áudio... <span id="chat-gravando-tempo">0s</span>
-          </div>
+
           <div class="chat-input-row">
             <textarea id="chat-texto" placeholder="Digite uma mensagem..." rows="1"
               onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarMensagem()}"
@@ -386,9 +381,7 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
             <button class="chat-btn-icon" onclick="document.getElementById('chat-file-input').click()" title="Anexar arquivo/foto">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
             </button>
-            <button class="chat-btn-icon" id="btn-gravar" onclick="toggleGravacao()" title="Gravar áudio">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-            </button>
+
             <button class="chat-btn-enviar" id="btn-enviar-msg" onclick="enviarMensagem()" title="Enviar">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
@@ -537,7 +530,7 @@ function tipoLabel(t) {
 // ══════════════════════════════════════════════════════════
 let chatSubscription = null;
 let chatAnexoPendente = null; // { arquivo, nome, mimeType, tamanho }
-let mediaRecorder = null, audioChunks = [], gravandoTimer = null, gravandoSeg = 0;
+
 let tabAtiva = 'detalhes';
 
 function abrirTab(tab) {
@@ -1007,8 +1000,14 @@ function renderMensagem(m) {
   if (m.tipo === 'texto') {
     conteudo = '<div class="chat-bubble-texto">' + nl2br(m.conteudo) + '</div>';
   } else if (m.tipo === 'imagem') {
-    conteudo = '<div class="chat-bubble-midia"><img src="' + m.drive_url + '" alt="' + m.nome_arquivo + '" loading="lazy"/></div>';
+    const imgId = 'img-' + m.id;
+    conteudo = '<div class="chat-bubble-midia">'
+      + '<img id="' + imgId + '" alt="' + m.nome_arquivo + '" '
+      + 'style="max-width:100%;border-radius:6px;cursor:pointer;display:block;min-height:60px;background:var(--navy3)"/>'
+      + '<span id="' + imgId + '-load" style="font-size:11px;color:var(--text3)">Carregando imagem...</span>'
+      + '</div>';
     if (m.conteudo) conteudo += '<div class="chat-bubble-texto" style="margin-top:4px">' + nl2br(m.conteudo) + '</div>';
+    setTimeout(() => _carregarImgChat(imgId, m.drive_id), 80);
   } else if (m.tipo === 'audio') {
     const token = _gerarTokenGas();
     const url = GAS_DRIVE_URL + '?acao=base64&driveId=' + m.drive_id + '&token=' + token;
@@ -1155,88 +1154,27 @@ function removerAnexoChat() {
   document.getElementById('chat-preview').style.display = 'none';
 }
 
-// ── Gravação de áudio ───────────────────────────────────
-async function toggleGravacao() {
-  if (mediaRecorder && mediaRecorder.state === 'recording') {
-    mediaRecorder.stop();
-    return;
-  }
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    audioChunks  = [];
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-    mediaRecorder.onstop = async () => {
-      clearInterval(gravandoTimer);
-      gravandoSeg = 0;
-      document.getElementById('chat-gravando-info').style.display = 'none';
-      const btnG = document.getElementById('btn-gravar');
-      btnG.classList.remove('gravando');
-      btnG.title = 'Gravar áudio';
-      // Restaurar ícone do microfone
-      btnG.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
-      mostrarToast('Processando áudio...', 'sucesso');
-      stream.getTracks().forEach(t => t.stop());
-
-      const blob   = new Blob(audioChunks, { type: 'audio/webm' });
-      const nome   = `audio_${Date.now()}.webm`;
-      const base64 = await _blobParaBase64(blob);
-      const token  = _gerarTokenGas();
-
-      try {
-        const result = await _gasPost({
-          acao: 'drive.upload', token,
-          modulo: 'CHAT',
-          subpasta: solAtual.id,
-          nomeArquivo: nome,
-          mimeType: 'audio/webm',
-          base64,
-          idRegistro: solAtual.id,
-          enviadoPor: sessao.user.id,
-        });
-        if (!result.sucesso) throw new Error(result.erro);
-        await _inserirMensagem(solAtual.id, null, 'audio', {
-          drive_id:     result.dados.driveId,
-          drive_url:    result.dados.driveUrl,
-          nome_arquivo: nome,
-        });
-        mostrarToast('Áudio enviado!', 'sucesso');
-        await carregarChat(solAtual.id); // atualizar chat após envio
-      } catch (err) {
-        console.error('Erro áudio:', err);
-        mostrarToast('Erro ao enviar áudio: ' + err.message, 'erro');
-      }
-    };
-
-    mediaRecorder.start();
-    const btnGravar = document.getElementById('btn-gravar');
-    btnGravar.classList.add('gravando');
-    btnGravar.title = 'Parar gravação';
-    // Ícone vira quadrado (stop) durante gravação
-    btnGravar.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="var(--danger)" stroke="var(--danger)" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>';
-    document.getElementById('chat-gravando-info').style.display = 'flex';
-    gravandoSeg = 0;
-    gravandoTimer = setInterval(() => {
-      gravandoSeg++;
-      document.getElementById('chat-gravando-tempo').textContent = gravandoSeg + 's';
-      if (gravandoSeg >= 120) { mediaRecorder.stop(); }
-    }, 1000);
-
-  } catch (err) {
-    mostrarToast('Não foi possível acessar o microfone: ' + err.message, 'erro');
-  }
-}
-
-function _blobParaBase64(blob) {
-  return new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload  = () => res(r.result.split(',')[1]);
-    r.onerror = () => rej(new Error('Erro ao ler áudio'));
-    r.readAsDataURL(blob);
-  });
-}
-
 // ── Utils chat ──────────────────────────────────────────
+async function _carregarImgChat(imgId, driveId) {
+  const imgEl  = document.getElementById(imgId);
+  const loadEl = document.getElementById(imgId + '-load');
+  if (!imgEl) return;
+  try {
+    const token = _gerarTokenGas();
+    const resp  = await fetch(GAS_DRIVE_URL + '?acao=base64&driveId=' + driveId + '&token=' + token);
+    const data  = await resp.json();
+    if (!data.sucesso || !data.base64) throw new Error('Falha ao obter imagem');
+    imgEl.src = 'data:' + data.mimeType + ';base64,' + data.base64;
+    imgEl.style.minHeight = '';
+    imgEl.style.background = '';
+    imgEl.onclick = () => window.open(imgEl.src, '_blank');
+    if (loadEl) loadEl.remove();
+  } catch (err) {
+    if (imgEl) imgEl.style.display = 'none';
+    if (loadEl) loadEl.textContent = '⚠️ Não foi possível carregar a imagem.';
+  }
+}
+
 function scrollChatFim() {
   const el = document.getElementById('chat-msgs');
   if (el) el.scrollTop = el.scrollHeight;
@@ -1282,7 +1220,6 @@ function fecharForm() {
 function fecharModal() {
   document.getElementById('modal').classList.remove('aberto');
   if (chatSubscription) { sb.removeChannel(chatSubscription); chatSubscription = null; }
-  if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
 }
 
 // ══════════════════════════════════════════════════════════
