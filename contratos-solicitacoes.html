@@ -42,9 +42,6 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .badge-pendente{background:rgba(224,168,48,0.12);color:var(--warning);border:1px solid rgba(224,168,48,0.25);}
 .badge-aprovado{background:rgba(46,204,138,0.12);color:var(--success);border:1px solid rgba(46,204,138,0.25);}
 .badge-reprovado{background:rgba(224,85,85,0.12);color:var(--danger);border:1px solid rgba(224,85,85,0.25);}
-.badge-maquinas{background:rgba(46,123,196,0.12);color:var(--blue2);border:1px solid rgba(46,123,196,0.25);}
-.badge-veiculos{background:rgba(46,204,138,0.12);color:var(--success);border:1px solid rgba(46,204,138,0.25);}
-.badge-equipamentos{background:rgba(224,168,48,0.12);color:var(--warning);border:1px solid rgba(224,168,48,0.25);}
 .form-card{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:24px;}
 .form-card h3{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600;letter-spacing:1px;color:var(--text);margin-bottom:18px;}
 .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:14px;}
@@ -61,13 +58,51 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .btn-salvar:disabled{opacity:0.6;cursor:not-allowed;}
 .btn-cancelar{padding:11px 20px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:13px;cursor:pointer;transition:all 0.2s;}
 .btn-cancelar:hover{border-color:var(--text2);color:var(--text);}
+
+/* ── SEÇÃO DOCUMENTOS ─────────────────────────────────────── */
+.docs-section{margin-top:8px;display:none;}
+.docs-section.visivel{display:block;}
+.docs-section-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.docs-section-icon{width:32px;height:32px;background:rgba(46,123,196,0.12);border:1px solid var(--border2);border-radius:8px;display:flex;align-items:center;justify-content:center;}
+.docs-section-title{font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;letter-spacing:1px;color:var(--text);}
+.docs-section-sub{font-size:11px;color:var(--text3);margin-top:1px;}
+.docs-add-row{display:flex;gap:10px;align-items:flex-end;margin-bottom:16px;}
+.docs-add-row .form-group{flex:1;}
+.docs-add-row .form-group:first-child{max-width:220px;}
+.btn-add-doc{padding:10px 16px;background:rgba(46,123,196,0.12);border:1px solid var(--border2);border-radius:8px;color:var(--blue2);font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;white-space:nowrap;display:flex;align-items:center;gap:6px;height:44px;}
+.btn-add-doc:hover{background:rgba(46,123,196,0.2);border-color:var(--blue);}
+.btn-add-doc:disabled{opacity:0.5;cursor:not-allowed;}
+.doc-file-input{display:none;}
+.docs-lista{display:flex;flex-direction:column;gap:8px;}
+.doc-item{background:var(--navy3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:12px;animation:fadeUp 0.25s ease;}
+.doc-item-icon{width:36px;height:36px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;}
+.doc-item-icon.pdf{background:rgba(224,85,85,0.12);border:1px solid rgba(224,85,85,0.2);}
+.doc-item-icon.img{background:rgba(46,204,138,0.12);border:1px solid rgba(46,204,138,0.2);}
+.doc-item-icon.doc{background:rgba(46,123,196,0.12);border:1px solid rgba(46,123,196,0.2);}
+.doc-item-icon.xls{background:rgba(46,204,138,0.12);border:1px solid rgba(46,204,138,0.2);}
+.doc-item-icon.gen{background:rgba(77,107,133,0.2);border:1px solid var(--border);}
+.doc-item-info{flex:1;min-width:0;}
+.doc-item-nome{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.doc-item-meta{font-size:11px;color:var(--text3);margin-top:2px;}
+.doc-item-status{font-size:11px;padding:2px 8px;border-radius:20px;}
+.doc-item-status.enviando{background:rgba(224,168,48,0.12);color:var(--warning);border:1px solid rgba(224,168,48,0.25);}
+.doc-item-status.enviado{background:rgba(46,204,138,0.12);color:var(--success);border:1px solid rgba(46,204,138,0.25);}
+.doc-item-status.erro{background:rgba(224,85,85,0.12);color:var(--danger);border:1px solid rgba(224,85,85,0.25);}
+.doc-item-status.pendente{background:rgba(77,107,133,0.2);color:var(--text3);border:1px solid var(--border);}
+.btn-remover-doc{width:28px;height:28px;background:rgba(224,85,85,0.1);border:1px solid rgba(224,85,85,0.2);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
+.btn-remover-doc:hover{background:rgba(224,85,85,0.2);}
+.docs-hint{font-size:11px;color:var(--text3);margin-top:12px;padding:10px 14px;background:rgba(46,123,196,0.05);border:1px solid var(--border);border-radius:8px;line-height:1.6;}
+.progress-bar{height:3px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:6px;}
+.progress-fill{height:100%;background:var(--blue);border-radius:3px;transition:width 0.3s ease;}
+/* ── FIM DOCUMENTOS ────────────────────────────────────────── */
+
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;}
 .modal-overlay.aberto{display:flex;}
-.modal{background:var(--navy2);border:1px solid var(--border2);border-radius:14px;padding:28px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 48px rgba(0,0,0,0.5);}
+.modal{background:var(--navy2);border:1px solid var(--border2);border-radius:14px;padding:28px;width:600px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 48px rgba(0,0,0,0.5);}
 .modal h3{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:20px;}
 .modal-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
 .modal-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);}
-.modal-value{font-size:13px;font-weight:500;text-align:right;}
+.modal-value{font-size:13px;font-weight:500;text-align:right;max-width:65%;}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
 .audit-info{font-size:11px;color:var(--text3);margin-top:16px;padding-top:16px;border-top:1px solid var(--border);line-height:1.8;}
 .btn-aprovar{padding:9px 18px;background:rgba(46,204,138,0.15);border:1px solid rgba(46,204,138,0.35);border-radius:8px;color:var(--success);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;}
@@ -80,56 +115,20 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .toast.sucesso{border-left:3px solid var(--success);}
 .toast.erro{border-left:3px solid var(--danger);}
 .spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.6s linear infinite;margin:48px auto;display:block;}
+
+/* Documentos no modal */
+.modal-docs-section{margin-top:20px;padding-top:16px;border-top:1px solid var(--border);}
+.modal-docs-title{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.modal-doc-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--navy3);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;}
+.modal-doc-item-info{flex:1;min-width:0;}
+.modal-doc-item-nome{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.modal-doc-item-tipo{font-size:11px;color:var(--text3);margin-top:1px;}
+.btn-doc-abrir{padding:5px 12px;background:rgba(46,123,196,0.12);border:1px solid var(--border2);border-radius:6px;color:var(--blue2);font-size:11px;cursor:pointer;transition:all 0.2s;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
+.btn-doc-abrir:hover{background:rgba(46,123,196,0.25);}
+
 @keyframes spin{to{transform:rotate(360deg);}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
-
-/* ── TEMA CLARO ─────────────────────────────────────────── */
-body.light {
-  --navy:#F0F4F8;
-  --navy2:#FFFFFF;
-  --navy3:#E2E8F0;
-  --blue:#2E7BC4;
-  --blue2:#1A5FA8;
-  --blue-glow:rgba(46,123,196,0.15);
-  --text:#1A2533;
-  --text2:#3D5A73;
-  --text3:#7A96AD;
-  --border:rgba(26,51,82,0.12);
-  --border2:rgba(26,51,82,0.25);
-  --success:#1A9E5F;
-  --danger:#C0392B;
-  --warning:#B07D10;
-}
-body.light .topbar{background:rgba(26,51,82,0.97);}
-body.light .topbar-modulo{color:rgba(255,255,255,0.7);}
-body.light .obra-chip{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.8);}
-body.light .obra-chip span{color:#fff;}
-body.light .btn-voltar{border-color:rgba(255,255,255,0.3);color:rgba(255,255,255,0.7);}
-body.light .btn-voltar:hover{border-color:#fff;color:#fff;}
-body.light body::before{background-image:linear-gradient(rgba(26,51,82,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(26,51,82,0.04) 1px,transparent 1px);}
-body.light .drawer{background:#FFFFFF;border-left-color:rgba(26,51,82,0.2);}
-body.light .drawer-footer{background:#FFFFFF;}
-body.light .mmodal{background:#FFFFFF;}
-body.light .fg input,.body.light .fg select,.body.light .fg textarea{background:#F8FAFC;}
-body.light .fg input,.body.light .fg select{color:var(--text);}
-body.light .tab-panel{background:transparent;}
-body.light .tipo-btn{background:#F8FAFC;}
-body.light .tipo-btn.ativo{background:rgba(46,123,196,0.1);}
-body.light .upload-area{background:#F8FAFC;}
-body.light .pix-item input,.body.light .pix-item select{background:#F8FAFC;}
-body.light .toast{background:#FFFFFF;}
-body.light .badge-pj{background:rgba(46,123,196,0.1);}
-body.light .badge-ativo{background:rgba(26,158,95,0.1);}
-body.light .badge-inativo{background:rgba(122,150,173,0.15);}
-body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue);}
-/* Toggle btn */
-.theme-toggle{background:transparent;border:1px solid rgba(255,255,255,0.3);border-radius:6px;
-  width:32px;height:32px;cursor:pointer;font-size:15px;display:flex;align-items:center;
-  justify-content:center;transition:all 0.2s;color:#fff;}
-.theme-toggle:hover{background:rgba(255,255,255,0.1);}
-
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
 </style>
-<script>(function(){if(localStorage.getItem("sigecon_tema")==="light")document.body.classList.add("light");})()</script>
 </head>
 <body>
 <div class="topbar">
@@ -141,7 +140,6 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
   <div class="topbar-modulo">Solicitações de Contratos</div>
   <div class="topbar-right">
     <div class="obra-chip">Obra: <span id="obra-nome-display">—</span></div>
-    <button class="theme-toggle" id="theme-toggle" onclick="toggleTema()" title="Alternar tema">🌙</button>
     <a class="btn-voltar" href="index.html">← Portal</a>
   </div>
 </div>
@@ -158,10 +156,12 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
   <div class="form-card" id="form-card" style="display:none">
     <h3 id="form-titulo">Nova solicitação</h3>
     <input type="hidden" id="form-id"/>
+
+    <!-- DADOS PRINCIPAIS -->
     <div class="form-row">
       <div class="form-group">
         <label>Tipo de contrato *</label>
-        <select id="f-tipo">
+        <select id="f-tipo" onchange="onTipoChange()">
           <option value="">Selecione...</option>
           <option value="locacao_maquinas">Locação de Máquinas</option>
           <option value="locacao_veiculos">Locação de Veículos</option>
@@ -193,7 +193,53 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
         <textarea id="f-objeto" placeholder="Descreva o objeto do contrato e a justificativa da solicitação..."></textarea>
       </div>
     </div>
-    <div class="form-actions">
+
+    <!-- SEÇÃO DE DOCUMENTOS (condicional para locações) -->
+    <div class="docs-section" id="docs-section">
+      <div class="docs-section-header">
+        <div class="docs-section-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <div>
+          <div class="docs-section-title">Documentos da Proposta</div>
+          <div class="docs-section-sub">Anexe os documentos que acompanharão a solicitação (serão salvos no Drive)</div>
+        </div>
+      </div>
+
+      <div class="docs-add-row">
+        <div class="form-group">
+          <label>Tipo do documento</label>
+          <select id="doc-tipo-select">
+            <option value="proposta_comercial">Proposta Comercial</option>
+            <option value="proposta_tecnica">Proposta Técnica</option>
+            <option value="planilha_precos">Planilha de Preços</option>
+            <option value="memorial_descritivo">Memorial Descritivo</option>
+            <option value="ficha_tecnica">Ficha Técnica do Equipamento</option>
+            <option value="certificado">Certificado / Habilitação</option>
+            <option value="outros">Outros</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex:2">
+          <label>Arquivo</label>
+          <input type="text" id="doc-nome-display" placeholder="Nenhum arquivo selecionado" readonly style="cursor:pointer;" onclick="document.getElementById('doc-file-input').click()"/>
+        </div>
+        <input type="file" id="doc-file-input" class="doc-file-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" onchange="onArquivoSelecionado()"/>
+        <button class="btn-add-doc" id="btn-add-doc" onclick="adicionarDoc()" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Adicionar
+        </button>
+      </div>
+
+      <div class="docs-lista" id="docs-lista"></div>
+
+      <div class="docs-hint">
+        📋 Os documentos serão enviados ao Google Drive no momento do envio da solicitação.<br>
+        Formatos aceitos: PDF, Word (.doc/.docx), Excel (.xls/.xlsx), imagens (JPG/PNG). Tamanho máximo: 10 MB por arquivo.
+      </div>
+    </div>
+    <!-- FIM DOCUMENTOS -->
+
+    <div class="form-actions" style="margin-top:20px">
       <button class="btn-cancelar" onclick="fecharForm()">Cancelar</button>
       <button class="btn-salvar" id="btn-salvar" onclick="salvar()">Enviar solicitação</button>
     </div>
@@ -206,6 +252,7 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
   <div class="modal">
     <h3 id="modal-titulo">Solicitação</h3>
     <div id="modal-body"></div>
+    <div id="modal-docs-area"></div>
     <div class="audit-info" id="modal-audit"></div>
     <div class="modal-actions" id="modal-actions"></div>
   </div>
@@ -214,188 +261,526 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
 <div class="toast-container" id="toast-container"></div>
 
 <script>
-const SUPABASE_URL='https://tozxqxvwuqelajoowlfe.supabase.co';
-const SUPABASE_KEY='sb_publishable_AybOS8E3yIQQpDqZ4GVtbQ_lnh2EySO';
-const {createClient}=supabase;
-const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
-let sessao=null,obraId=null,perfil=null,solicitacoes=[],solAtual=null;
+// ══════════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://tozxqxvwuqelajoowlfe.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_AybOS8E3yIQQpDqZ4GVtbQ_lnh2EySO';
+const GAS_DRIVE_URL = 'SUA_URL_GAS_DRIVE_AQUI'; // ← Cole a URL do SIGECON_Drive GAS
 
-window.addEventListener('DOMContentLoaded',async()=>{
-  const {data:{session}}=await sb.auth.getSession();
-  if(!session){window.location.href='index.html';return;}
-  sessao=session;
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // ── Verifica permissão para este módulo ──────────────────
-  const _moduloId = 'solicitacao_contratos';
-  const { data: _usr } = await sb.from('usuarios')
-    .select('perfis(nome)')
-    .eq('id', session.user.id)
-    .single();
+let sessao = null, obraId = null, perfil = null;
+let solicitacoes = [], solAtual = null;
 
-  const _perfil = _usr?.perfis?.nome;
+// Fila de documentos pendentes (antes do envio da solicitação)
+let docsFila = []; // [{ id, tipoDoc, tipoLabel, arquivo, nome, status, driveId, driveUrl }]
 
-  // Admin sempre tem acesso
-  if (_perfil !== 'admin') {
-    // Fornecedor não acessa módulos internos
-    if (_perfil === 'fornecedor') {
-      window.location.href = 'fornecedor-portal.html';
-      return;
-    }
-    // Verifica se tem o módulo liberado
-    const { data: _perm } = await sb.from('usuario_modulos')
-      .select('modulo')
-      .eq('usuario_id', session.user.id)
-      .eq('modulo', _moduloId)
-      .single();
-    if (!_perm) {
-      alert('Você não tem permissão para acessar este módulo.');
-      window.location.href = 'index.html';
-      return;
-    }
+// ══════════════════════════════════════════════════════════
+// TIPOS DE LOCAÇÃO — exigem documentos
+// ══════════════════════════════════════════════════════════
+const TIPOS_LOCACAO = ['locacao_maquinas', 'locacao_veiculos', 'locacao_equipamentos'];
+
+const TIPO_DOC_LABELS = {
+  proposta_comercial:  'Proposta Comercial',
+  proposta_tecnica:    'Proposta Técnica',
+  planilha_precos:     'Planilha de Preços',
+  memorial_descritivo: 'Memorial Descritivo',
+  ficha_tecnica:       'Ficha Técnica do Equipamento',
+  certificado:         'Certificado / Habilitação',
+  outros:              'Outros',
+};
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'index.html'; return; }
+  sessao = session;
+
+  const params = new URLSearchParams(window.location.search);
+  obraId = params.get('obra');
+  if (obraId) {
+    const { data: obra } = await sb.from('obras').select('nome').eq('id', obraId).single();
+    if (obra) document.getElementById('obra-nome-display').textContent = obra.nome;
   }
-  // ── Fim verificação ──────────────────────────────────────
-  const params=new URLSearchParams(window.location.search);
-  obraId=params.get('obra');
-  if(obraId){
-    const {data:obra}=await sb.from('obras').select('nome').eq('id',obraId).single();
-    if(obra)document.getElementById('obra-nome-display').textContent=obra.nome;
-  }
-  const {data:usr}=await sb.from('usuarios').select('perfis(nome)').eq('id',sessao.user.id).single();
-  perfil=usr?.perfis?.nome||'operador';
+
+  const { data: usr } = await sb.from('usuarios').select('perfis(nome)').eq('id', sessao.user.id).single();
+  perfil = usr?.perfis?.nome || 'operador';
+
   await carregarFornecedoresSelect();
   await carregar();
 });
 
-async function carregarFornecedoresSelect(){
-  const {data}=await sb.from('fornecedores').select('id,razao_social').eq('status','ativo').order('razao_social');
-  const sel=document.getElementById('f-fornecedor');
-  sel.innerHTML='<option value="">Selecione o fornecedor...</option>';
-  (data||[]).forEach(f=>sel.innerHTML+=`<option value="${f.id}">${f.razao_social}</option>`);
+// ══════════════════════════════════════════════════════════
+// FORNECEDORES
+// ══════════════════════════════════════════════════════════
+async function carregarFornecedoresSelect() {
+  const { data } = await sb.from('fornecedores').select('id,razao_social').eq('status', 'ativo').order('razao_social');
+  const sel = document.getElementById('f-fornecedor');
+  sel.innerHTML = '<option value="">Selecione o fornecedor...</option>';
+  (data || []).forEach(f => sel.innerHTML += `<option value="${f.id}">${f.razao_social}</option>`);
 }
 
-async function carregar(){
-  let q=sb.from('solicitacoes_contratos').select('*,fornecedores(razao_social),criado_por_usr:usuarios!solicitacoes_contratos_criado_por_fkey(nome)').order('criado_em',{ascending:false});
-  if(obraId)q=q.eq('obra_id',obraId);
-  const {data,error}=await q;
-  if(error){mostrarToast('Erro ao carregar solicitações.','erro');return;}
-  solicitacoes=data||[];
+// ══════════════════════════════════════════════════════════
+// KANBAN
+// ══════════════════════════════════════════════════════════
+async function carregar() {
+  let q = sb.from('solicitacoes_contratos')
+    .select('*,fornecedores(razao_social),criado_por_usr:usuarios!solicitacoes_contratos_criado_por_fkey(nome)')
+    .order('criado_em', { ascending: false });
+  if (obraId) q = q.eq('obra_id', obraId);
+  const { data, error } = await q;
+  if (error) { mostrarToast('Erro ao carregar solicitações.', 'erro'); return; }
+  solicitacoes = data || [];
   renderizarKanban();
 }
 
-function renderizarKanban(){
-  const pendentes=solicitacoes.filter(s=>s.status==='pendente');
-  const aprovadas=solicitacoes.filter(s=>s.status==='aprovado');
-  const reprovadas=solicitacoes.filter(s=>s.status==='reprovado');
-  document.getElementById('kanban').innerHTML=`
-    ${coluna('Aguardando aprovação','pendente',pendentes,'badge-pendente')}
-    ${coluna('Aprovadas','aprovado',aprovadas,'badge-aprovado')}
-    ${coluna('Reprovadas','reprovado',reprovadas,'badge-reprovado')}
-  `;
+function renderizarKanban() {
+  const pendentes  = solicitacoes.filter(s => s.status === 'pendente');
+  const aprovadas  = solicitacoes.filter(s => s.status === 'aprovado');
+  const reprovadas = solicitacoes.filter(s => s.status === 'reprovado');
+  document.getElementById('kanban').innerHTML =
+    coluna('Aguardando aprovação', 'pendente',  pendentes,  'badge-pendente') +
+    coluna('Aprovadas',            'aprovado',  aprovadas,  'badge-aprovado') +
+    coluna('Reprovadas',           'reprovado', reprovadas, 'badge-reprovado');
 }
 
-function coluna(titulo,status,lista,badgeClass){
+function coluna(titulo, status, lista, badgeClass) {
   return `<div class="kanban-col">
     <div class="kanban-col-header">
       <span class="kanban-col-title">${titulo}</span>
       <span class="kanban-count">${lista.length}</span>
     </div>
-    ${lista.length?lista.map(s=>`
+    ${lista.length ? lista.map(s => `
       <div class="kanban-card" onclick="abrirDetalhe('${s.id}')">
-        <div class="kanban-card-title">${s.fornecedores?.razao_social||'—'}</div>
-        <div class="kanban-card-meta">${tipoLabel(s.tipo)} • ${s.data_inicio?formatarData(s.data_inicio):'-'}</div>
+        <div class="kanban-card-title">${s.fornecedores?.razao_social || '—'}</div>
+        <div class="kanban-card-meta">${tipoLabel(s.tipo)} • ${s.data_inicio ? formatarData(s.data_inicio) : '-'}</div>
         <div class="kanban-card-footer">
           <span class="badge ${badgeClass}">${s.status}</span>
-          ${s.valor_estimado?`<span style="font-size:12px;color:var(--text2)">R$ ${Number(s.valor_estimado).toLocaleString('pt-BR',{minimumFractionDigits:2})}</span>`:''}
+          ${s.valor_estimado ? `<span style="font-size:12px;color:var(--text2)">R$ ${Number(s.valor_estimado).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>` : ''}
         </div>
-      </div>`).join(''):`<div class="empty-col">Nenhuma solicitação</div>`}
+      </div>`).join('') : `<div class="empty-col">Nenhuma solicitação</div>`}
   </div>`;
 }
 
-function tipoLabel(t){return{locacao_maquinas:'Locação Máquinas',locacao_veiculos:'Locação Veículos',locacao_equipamentos:'Locação Equipamentos'}[t]||t;}
+function tipoLabel(t) {
+  return { locacao_maquinas: 'Locação Máquinas', locacao_veiculos: 'Locação Veículos', locacao_equipamentos: 'Locação Equipamentos' }[t] || t;
+}
 
-function abrirDetalhe(id){
-  solAtual=solicitacoes.find(s=>s.id===id);
-  if(!solAtual)return;
-  const s=solAtual;
-  document.getElementById('modal-titulo').textContent=`Solicitação — ${tipoLabel(s.tipo)}`;
-  const campos=[['Fornecedor',s.fornecedores?.razao_social],['Tipo',tipoLabel(s.tipo)],['Status',s.status],['Valor estimado',s.valor_estimado?`R$ ${Number(s.valor_estimado).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'—'],['Início previsto',s.data_inicio?formatarData(s.data_inicio):'—'],['Fim previsto',s.data_fim?formatarData(s.data_fim):'—'],['Objeto/Justificativa',s.objeto]];
-  document.getElementById('modal-body').innerHTML=campos.filter(([,v])=>v).map(([l,v])=>`<div class="modal-row"><span class="modal-label">${l}</span><span class="modal-value">${v}</span></div>`).join('');
-  document.getElementById('modal-audit').innerHTML=`Solicitado por <strong>${s.criado_por_usr?.nome||'—'}</strong> em ${formatarData(s.criado_em)}`;
-  const actions=document.getElementById('modal-actions');
-  actions.innerHTML='<button class="btn-cancelar" onclick="fecharModal()">Fechar</button>';
-  if(perfil==='admin'&&s.status==='pendente'){
-    actions.innerHTML+=`<button class="btn-reprovar" onclick="mudarStatus('${s.id}','reprovado')">Reprovar</button>`;
-    actions.innerHTML+=`<button class="btn-aprovar" onclick="mudarStatus('${s.id}','aprovado')">Aprovar</button>`;
+// ══════════════════════════════════════════════════════════
+// MODAL DETALHE
+// ══════════════════════════════════════════════════════════
+async function abrirDetalhe(id) {
+  solAtual = solicitacoes.find(s => s.id === id);
+  if (!solAtual) return;
+  const s = solAtual;
+  document.getElementById('modal-titulo').textContent = `Solicitação — ${tipoLabel(s.tipo)}`;
+
+  const campos = [
+    ['Fornecedor',        s.fornecedores?.razao_social],
+    ['Tipo',              tipoLabel(s.tipo)],
+    ['Status',            s.status],
+    ['Valor estimado',    s.valor_estimado ? `R$ ${Number(s.valor_estimado).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—'],
+    ['Início previsto',   s.data_inicio ? formatarData(s.data_inicio) : '—'],
+    ['Fim previsto',      s.data_fim    ? formatarData(s.data_fim)    : '—'],
+    ['Objeto/Justificativa', s.objeto],
+  ];
+  document.getElementById('modal-body').innerHTML = campos
+    .filter(([, v]) => v)
+    .map(([l, v]) => `<div class="modal-row"><span class="modal-label">${l}</span><span class="modal-value">${v}</span></div>`)
+    .join('');
+
+  // Carregar documentos se for tipo locação
+  const docsArea = document.getElementById('modal-docs-area');
+  docsArea.innerHTML = '';
+  if (TIPOS_LOCACAO.includes(s.tipo)) {
+    docsArea.innerHTML = '<div class="modal-docs-section"><div class="modal-docs-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Documentos</div><div id="modal-docs-lista"><span style="font-size:12px;color:var(--text3)">Carregando...</span></div></div>';
+    carregarDocsModal(s.id);
+  }
+
+  document.getElementById('modal-audit').innerHTML =
+    `Solicitado por <strong>${s.criado_por_usr?.nome || '—'}</strong> em ${formatarData(s.criado_em)}`;
+
+  const actions = document.getElementById('modal-actions');
+  actions.innerHTML = '<button class="btn-cancelar" onclick="fecharModal()">Fechar</button>';
+  if (perfil === 'admin' && s.status === 'pendente') {
+    actions.innerHTML += `<button class="btn-reprovar" onclick="mudarStatus('${s.id}','reprovado')">Reprovar</button>`;
+    actions.innerHTML += `<button class="btn-aprovar"  onclick="mudarStatus('${s.id}','aprovado')">Aprovar</button>`;
   }
   document.getElementById('modal').classList.add('aberto');
 }
 
-async function mudarStatus(id,novoStatus){
-  const {error}=await sb.from('solicitacoes_contratos').update({status:novoStatus,editado_por:sessao.user.id}).eq('id',id);
-  if(error){mostrarToast('Erro ao atualizar status.','erro');return;}
-  mostrarToast(`Solicitação ${novoStatus}!`,'sucesso');
+async function carregarDocsModal(solicitacaoId) {
+  const { data, error } = await sb
+    .from('solicitacoes_documentos')
+    .select('*')
+    .eq('solicitacao_id', solicitacaoId)
+    .order('criado_em');
+
+  const lista = document.getElementById('modal-docs-lista');
+  if (error || !data?.length) {
+    lista.innerHTML = '<span style="font-size:12px;color:var(--text3)">Nenhum documento anexado.</span>';
+    return;
+  }
+
+  const token = _gerarTokenGas();
+  lista.innerHTML = data.map(doc => `
+    <div class="modal-doc-item">
+      <div style="font-size:20px">${iconeDocPorMime(doc.mime_type)}</div>
+      <div class="modal-doc-item-info">
+        <div class="modal-doc-item-nome">${doc.nome_arquivo}</div>
+        <div class="modal-doc-item-tipo">${TIPO_DOC_LABELS[doc.tipo_documento] || doc.tipo_documento} • ${formatarTamanho(doc.tamanho_bytes)}</div>
+      </div>
+      <a class="btn-doc-abrir" href="${GAS_DRIVE_URL}?acao=baixar&driveId=${doc.drive_id}&token=${token}" target="_blank">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Baixar
+      </a>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+// MUDANÇA DE TIPO — mostra/oculta seção docs
+// ══════════════════════════════════════════════════════════
+function onTipoChange() {
+  const tipo = document.getElementById('f-tipo').value;
+  const sec  = document.getElementById('docs-section');
+  if (TIPOS_LOCACAO.includes(tipo)) {
+    sec.classList.add('visivel');
+  } else {
+    sec.classList.remove('visivel');
+    docsFila = [];
+    renderizarFilaDocs();
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// DOCUMENTOS — FILA LOCAL (antes do envio)
+// ══════════════════════════════════════════════════════════
+let arquivoSelecionado = null;
+
+function onArquivoSelecionado() {
+  const input = document.getElementById('doc-file-input');
+  arquivoSelecionado = input.files[0] || null;
+  const display = document.getElementById('doc-nome-display');
+  if (arquivoSelecionado) {
+    if (arquivoSelecionado.size > 10 * 1024 * 1024) {
+      mostrarToast('Arquivo muito grande. Máximo 10 MB.', 'erro');
+      arquivoSelecionado = null;
+      input.value = '';
+      display.value = '';
+      document.getElementById('btn-add-doc').disabled = true;
+      return;
+    }
+    display.value = arquivoSelecionado.name;
+    document.getElementById('btn-add-doc').disabled = false;
+  } else {
+    display.value = '';
+    document.getElementById('btn-add-doc').disabled = true;
+  }
+}
+
+function adicionarDoc() {
+  if (!arquivoSelecionado) return;
+  const tipoDoc = document.getElementById('doc-tipo-select').value;
+  const id = 'doc_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+  docsFila.push({
+    id,
+    tipoDoc,
+    tipoLabel: TIPO_DOC_LABELS[tipoDoc] || tipoDoc,
+    arquivo: arquivoSelecionado,
+    nome: arquivoSelecionado.name,
+    tamanho: arquivoSelecionado.size,
+    mimeType: arquivoSelecionado.type || 'application/octet-stream',
+    status: 'pendente', // pendente → enviando → enviado / erro
+    driveId: null,
+    driveUrl: null,
+  });
+
+  // Limpar seleção
+  arquivoSelecionado = null;
+  document.getElementById('doc-file-input').value = '';
+  document.getElementById('doc-nome-display').value = '';
+  document.getElementById('btn-add-doc').disabled = true;
+
+  renderizarFilaDocs();
+}
+
+function removerDoc(id) {
+  docsFila = docsFila.filter(d => d.id !== id);
+  renderizarFilaDocs();
+}
+
+function renderizarFilaDocs() {
+  const lista = document.getElementById('docs-lista');
+  if (!docsFila.length) { lista.innerHTML = ''; return; }
+  lista.innerHTML = docsFila.map(doc => `
+    <div class="doc-item" id="docitem-${doc.id}">
+      <div class="doc-item-icon ${iconeClassePorMime(doc.mimeType)}">${iconeDocPorMime(doc.mimeType)}</div>
+      <div class="doc-item-info">
+        <div class="doc-item-nome">${doc.nome}</div>
+        <div class="doc-item-meta">${doc.tipoLabel} • ${formatarTamanho(doc.tamanho)}</div>
+        ${doc.status === 'enviando' ? `<div class="progress-bar"><div class="progress-fill" id="prog-${doc.id}" style="width:0%"></div></div>` : ''}
+      </div>
+      <span class="doc-item-status ${doc.status}">${statusDocLabel(doc.status)}</span>
+      ${doc.status !== 'enviando' && doc.status !== 'enviado' ?
+        `<button class="btn-remover-doc" onclick="removerDoc('${doc.id}')" title="Remover">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>` : ''}
+    </div>`).join('');
+}
+
+function statusDocLabel(s) {
+  return { pendente: 'Pendente', enviando: 'Enviando...', enviado: 'Enviado ✓', erro: 'Erro' }[s] || s;
+}
+
+// ══════════════════════════════════════════════════════════
+// ENVIAR DOCUMENTOS AO DRIVE
+// ══════════════════════════════════════════════════════════
+async function enviarDocumentosParaDrive(solicitacaoId) {
+  const docsParaEnviar = docsFila.filter(d => d.status === 'pendente');
+  if (!docsParaEnviar.length) return;
+
+  const token = _gerarTokenGas();
+
+  for (const doc of docsParaEnviar) {
+    // Atualizar status na UI
+    doc.status = 'enviando';
+    renderizarFilaDocs();
+
+    try {
+      // Ler arquivo como base64
+      const base64 = await _lerArquivoBase64(doc.arquivo);
+
+      // Simular progresso visual
+      _animarProgresso(doc.id);
+
+      // Enviar ao GAS Drive
+      const payload = {
+        acao: 'drive.upload',
+        token,
+        modulo: 'SOLICITACOES',
+        subpasta: solicitacaoId,
+        nomeArquivo: doc.nome,
+        mimeType: doc.mimeType,
+        base64,
+        idRegistro: solicitacaoId,
+        enviadoPor: sessao.user.id,
+      };
+
+      const resp = await fetch(GAS_DRIVE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload),
+      });
+      const result = await resp.json();
+
+      if (!result.sucesso) throw new Error(result.erro || 'Erro no Drive');
+
+      doc.driveId  = result.dados.driveId;
+      doc.driveUrl = result.dados.driveUrl;
+      doc.status   = 'enviado';
+
+      // Registrar no Supabase
+      await sb.from('solicitacoes_documentos').insert({
+        solicitacao_id:  solicitacaoId,
+        tipo_documento:  doc.tipoDoc,
+        nome_arquivo:    doc.nome,
+        mime_type:       doc.mimeType,
+        tamanho_bytes:   doc.tamanho,
+        drive_id:        doc.driveId,
+        drive_url:       doc.driveUrl,
+        enviado_por:     sessao.user.id,
+      });
+
+    } catch (err) {
+      doc.status = 'erro';
+      mostrarToast(`Erro ao enviar "${doc.nome}": ${err.message}`, 'erro');
+    }
+
+    renderizarFilaDocs();
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// SALVAR SOLICITAÇÃO
+// ══════════════════════════════════════════════════════════
+async function salvar() {
+  const tipo       = document.getElementById('f-tipo').value;
+  const fornecedor = document.getElementById('f-fornecedor').value;
+  const objeto     = document.getElementById('f-objeto').value.trim();
+
+  if (!tipo || !fornecedor || !objeto) {
+    mostrarToast('Preencha tipo, fornecedor e objeto.', 'erro');
+    return;
+  }
+
+  // Validar que docs obrigatórios foram adicionados para locação
+  if (TIPOS_LOCACAO.includes(tipo) && docsFila.length === 0) {
+    mostrarToast('Para contratos de locação, é necessário anexar ao menos um documento (ex: Proposta Comercial).', 'erro');
+    return;
+  }
+
+  const btn = document.getElementById('btn-salvar');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  try {
+    // 1. Criar solicitação no Supabase
+    const { data: sol, error } = await sb.from('solicitacoes_contratos').insert({
+      tipo,
+      fornecedor_id:  fornecedor,
+      obra_id:        obraId,
+      valor_estimado: document.getElementById('f-valor').value || null,
+      data_inicio:    document.getElementById('f-inicio').value || null,
+      data_fim:       document.getElementById('f-fim').value    || null,
+      objeto,
+      status:         'pendente',
+      criado_por:     sessao.user.id,
+    }).select().single();
+
+    if (error) throw new Error(error.message);
+
+    // 2. Enviar documentos ao Drive (se houver)
+    if (docsFila.length > 0) {
+      btn.textContent = `Enviando documentos (0/${docsFila.length})...`;
+      await enviarDocumentosParaDrive(sol.id);
+
+      // Verificar erros
+      const erros = docsFila.filter(d => d.status === 'erro');
+      if (erros.length) {
+        mostrarToast(`Solicitação criada, mas ${erros.length} documento(s) falharam no upload.`, 'erro');
+      } else {
+        mostrarToast('Solicitação e documentos enviados com sucesso!', 'sucesso');
+      }
+    } else {
+      mostrarToast('Solicitação enviada para aprovação!', 'sucesso');
+    }
+
+    docsFila = [];
+    fecharForm();
+    await carregar();
+
+  } catch (err) {
+    mostrarToast('Erro: ' + err.message, 'erro');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Enviar solicitação';
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// APROVAÇÃO
+// ══════════════════════════════════════════════════════════
+async function mudarStatus(id, novoStatus) {
+  const { error } = await sb.from('solicitacoes_contratos')
+    .update({ status: novoStatus, editado_por: sessao.user.id })
+    .eq('id', id);
+  if (error) { mostrarToast('Erro ao atualizar status.', 'erro'); return; }
+  mostrarToast(`Solicitação ${novoStatus}!`, 'sucesso');
   fecharModal();
   await carregar();
 }
 
-function abrirForm(){
-  document.getElementById('form-id').value='';
-  document.getElementById('f-tipo').value='';
-  document.getElementById('f-fornecedor').value='';
-  document.getElementById('f-valor').value='';
-  document.getElementById('f-inicio').value='';
-  document.getElementById('f-fim').value='';
-  document.getElementById('f-objeto').value='';
-  document.getElementById('form-card').style.display='block';
-  document.getElementById('form-card').scrollIntoView({behavior:'smooth'});
+// ══════════════════════════════════════════════════════════
+// FORM HELPERS
+// ══════════════════════════════════════════════════════════
+function abrirForm() {
+  document.getElementById('form-id').value         = '';
+  document.getElementById('f-tipo').value          = '';
+  document.getElementById('f-fornecedor').value    = '';
+  document.getElementById('f-valor').value         = '';
+  document.getElementById('f-inicio').value        = '';
+  document.getElementById('f-fim').value           = '';
+  document.getElementById('f-objeto').value        = '';
+  document.getElementById('docs-section').classList.remove('visivel');
+  docsFila = [];
+  arquivoSelecionado = null;
+  document.getElementById('docs-lista').innerHTML  = '';
+  document.getElementById('doc-nome-display').value = '';
+  document.getElementById('btn-add-doc').disabled  = true;
+  document.getElementById('form-card').style.display = 'block';
+  document.getElementById('form-card').scrollIntoView({ behavior: 'smooth' });
 }
 
-function fecharForm(){document.getElementById('form-card').style.display='none';}
-function fecharModal(){document.getElementById('modal').classList.remove('aberto');}
+function fecharForm() {
+  document.getElementById('form-card').style.display = 'none';
+  docsFila = [];
+}
 
-async function salvar(){
-  const tipo=document.getElementById('f-tipo').value;
-  const fornecedor=document.getElementById('f-fornecedor').value;
-  const objeto=document.getElementById('f-objeto').value.trim();
-  if(!tipo||!fornecedor||!objeto){mostrarToast('Preencha tipo, fornecedor e objeto.','erro');return;}
-  const btn=document.getElementById('btn-salvar');
-  btn.disabled=true;btn.textContent='Enviando...';
-  const {error}=await sb.from('solicitacoes_contratos').insert({
-    tipo,fornecedor_id:fornecedor,obra_id:obraId,
-    valor_estimado:document.getElementById('f-valor').value||null,
-    data_inicio:document.getElementById('f-inicio').value||null,
-    data_fim:document.getElementById('f-fim').value||null,
-    objeto,status:'pendente',criado_por:sessao.user.id
+function fecharModal() {
+  document.getElementById('modal').classList.remove('aberto');
+}
+
+// ══════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════
+function _gerarTokenGas() {
+  const userId = sessao.user.id;
+  const ts     = Date.now();
+  return btoa(userId + ':' + ts + ':sapiens');
+}
+
+function _lerArquivoBase64(arquivo) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = () => reject(new Error('Erro ao ler arquivo'));
+    reader.readAsDataURL(arquivo);
   });
-  btn.disabled=false;btn.textContent='Enviar solicitação';
-  if(error){mostrarToast('Erro: '+error.message,'erro');return;}
-  mostrarToast('Solicitação enviada para aprovação!','sucesso');
-  fecharForm();
-  await carregar();
 }
 
-function formatarData(iso){if(!iso)return'—';return new Date(iso).toLocaleDateString('pt-BR');}
-function mostrarToast(msg,tipo='sucesso'){const c=document.getElementById('toast-container');const t=document.createElement('div');t.className=`toast ${tipo}`;t.innerHTML=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${tipo==='sucesso'?'#2ECC8A':'#E05555'}" stroke-width="2">${tipo==='sucesso'?'<polyline points="20 6 9 17 4 12"/>':'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>'}</svg>${msg}`;c.appendChild(t);setTimeout(()=>t.remove(),4000);}
-
-// ── TEMA ────────────────────────────────────────────────────
-(function(){
-  const tema = localStorage.getItem('sigecon_tema') || 'dark';
-  if(tema === 'light') document.body.classList.add('light');
-})();
-
-function toggleTema(){
-  const isLight = document.body.classList.toggle('light');
-  localStorage.setItem('sigecon_tema', isLight ? 'light' : 'dark');
-  const btn = document.getElementById('theme-toggle');
-  if(btn) btn.textContent = isLight ? '☀️' : '🌙';
+function _animarProgresso(docId) {
+  let pct = 0;
+  const el = document.getElementById('prog-' + docId);
+  if (!el) return;
+  const iv = setInterval(() => {
+    pct = Math.min(pct + Math.random() * 15, 85);
+    if (el) el.style.width = pct + '%';
+    if (pct >= 85) clearInterval(iv);
+  }, 200);
 }
 
-// Aplica ícone correto ao carregar
-window.addEventListener('DOMContentLoaded', function(){
-  const btn = document.getElementById('theme-toggle');
-  if(btn) btn.textContent = document.body.classList.contains('light') ? '☀️' : '🌙';
-});
+function iconeDocPorMime(mime) {
+  if (!mime) return '📎';
+  if (mime.includes('pdf'))                       return '📄';
+  if (mime.includes('image'))                     return '🖼️';
+  if (mime.includes('spreadsheet') || mime.includes('excel') || mime.includes('xls')) return '📊';
+  if (mime.includes('word') || mime.includes('doc')) return '📝';
+  return '📎';
+}
 
+function iconeClassePorMime(mime) {
+  if (!mime) return 'gen';
+  if (mime.includes('pdf'))    return 'pdf';
+  if (mime.includes('image'))  return 'img';
+  if (mime.includes('sheet') || mime.includes('excel') || mime.includes('xls')) return 'xls';
+  if (mime.includes('word') || mime.includes('doc')) return 'doc';
+  return 'gen';
+}
+
+function formatarTamanho(bytes) {
+  if (!bytes) return '—';
+  if (bytes < 1024)           return bytes + ' B';
+  if (bytes < 1024 * 1024)    return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function formatarData(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('pt-BR');
+}
+
+function mostrarToast(msg, tipo = 'sucesso') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${tipo}`;
+  t.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${tipo === 'sucesso' ? '#2ECC8A' : '#E05555'}" stroke-width="2">${tipo === 'sucesso' ? '<polyline points="20 6 9 17 4 12"/>' : '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>'}</svg>${msg}`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 5000);
+}
 </script>
 </body>
 </html>
