@@ -226,9 +226,9 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
   justify-content:center;transition:all 0.2s;color:#fff;}
 .theme-toggle:hover{background:rgba(255,255,255,0.1);}
 </style>
-<script>(function(){if(localStorage.getItem("sigecon_tema")==="light")document.body.classList.add("light");})()</script>
 </head>
 <body>
+<script>(function(){if(localStorage.getItem("sigecon_tema")==="light")document.body.classList.add("light");})()</script>
 <div class="topbar">
   <a class="topbar-logo" href="index.html">
     <div class="topbar-logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
@@ -817,8 +817,9 @@ async function salvar() {
     return;
   }
 
-  // Validar que docs obrigatórios foram adicionados para locação
-  if (TIPOS_LOCACAO.includes(tipo) && docsFila.length === 0) {
+  // Validar docs obrigatórios apenas em nova solicitação (não em edição)
+  const _formIdCheck = document.getElementById('form-id').value;
+  if (!_formIdCheck && TIPOS_LOCACAO.includes(tipo) && docsFila.length === 0) {
     mostrarToast('Para contratos de locação, é necessário anexar ao menos um documento (ex: Proposta Comercial).', 'erro');
     return;
   }
@@ -841,6 +842,7 @@ async function salvar() {
         data_inicio:    document.getElementById('f-inicio').value || null,
         data_fim:       document.getElementById('f-fim').value    || null,
         objeto,
+        status:         'pendente', // volta para análise após edição
         editado_por:    sessao.user.id,
       }).eq('id', formId).select().single());
     } else {
@@ -1098,6 +1100,7 @@ async function enviarMensagem() {
     document.getElementById('chat-texto').value = '';
     document.getElementById('chat-texto').style.height = 'auto';
   } catch (err) {
+    console.error('enviarMensagem erro:', err);
     mostrarToast('Erro ao enviar mensagem: ' + err.message, 'erro');
   } finally {
     btn.disabled = false;
@@ -1105,16 +1108,21 @@ async function enviarMensagem() {
 }
 
 async function _inserirMensagem(solicitacaoId, conteudo, tipo = 'texto', extra = {}) {
+  // autor_id sempre preenchido — RLS exige usuário autenticado.
+  // Tipo 'sistema' usa o próprio usuário logado como autor (admin/gestor).
   const { error } = await sb.from('solicitacoes_mensagens').insert({
     solicitacao_id: solicitacaoId,
-    autor_id:       tipo === 'sistema' ? null : sessao.user.id,
+    autor_id:       sessao.user.id,
     tipo,
     conteudo:       conteudo || null,
-    drive_id:       extra.drive_id    || null,
-    drive_url:      extra.drive_url   || null,
+    drive_id:       extra.drive_id     || null,
+    drive_url:      extra.drive_url    || null,
     nome_arquivo:   extra.nome_arquivo || null,
   });
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error('_inserirMensagem erro:', error);
+    throw new Error(error.message);
+  }
 }
 
 // ── Arquivo no chat ─────────────────────────────────────
