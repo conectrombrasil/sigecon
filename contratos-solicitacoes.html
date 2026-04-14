@@ -570,12 +570,8 @@ async function enviarDocumentosParaDrive(solicitacaoId) {
         enviadoPor: sessao.user.id,
       };
 
-      const resp = await fetch(GAS_DRIVE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(payload),
-      });
-      const result = await resp.json();
+      const resp = await _gasPost(payload);
+      const result = resp;
 
       if (!result.sucesso) throw new Error(result.erro || 'Erro no Drive');
 
@@ -717,6 +713,32 @@ function fecharModal() {
 // ══════════════════════════════════════════════════════════
 // UTILS
 // ══════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+// GAS POST — resolve CORS do GAS Web App
+// O GAS aceita POST com Content-Type text/plain sem preflight.
+// Qualquer outro Content-Type dispara OPTIONS que o GAS não responde.
+// ══════════════════════════════════════════════════════════
+async function _gasPost(payload) {
+  if (!GAS_DRIVE_URL || GAS_DRIVE_URL.includes('SUA_URL')) {
+    throw new Error('URL do GAS Drive não configurada. Edite a constante GAS_DRIVE_URL no topo do script.');
+  }
+  const resp = await fetch(GAS_DRIVE_URL, {
+    method: 'POST',
+    // NÃO usar application/json — dispara preflight CORS que o GAS não responde.
+    // text/plain é tratado como "simple request" e passa sem preflight.
+    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+    body: JSON.stringify(payload),
+    redirect: 'follow', // GAS redireciona na primeira chamada
+  });
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+  const text = await resp.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error('Resposta inválida do GAS: ' + text.substring(0, 200));
+  }
+}
+
 function _gerarTokenGas() {
   const userId = sessao.user.id;
   const ts     = Date.now();
