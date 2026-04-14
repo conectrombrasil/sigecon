@@ -1138,6 +1138,10 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
 .cs-bloqueado{padding:10px 12px;background:rgba(77,107,133,0.08);border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--text3);}
 .cs-btn-finalizar{margin:0 12px 10px;padding:8px;background:rgba(224,85,85,0.08);border:1px solid rgba(224,85,85,0.25);border-radius:8px;cursor:pointer;text-align:center;font-size:11px;color:var(--danger);transition:all 0.2s;display:none;}
 .cs-btn-finalizar:hover{background:rgba(224,85,85,0.15);}
+.cs-tag-arquivada{font-size:9px;padding:1px 6px;background:rgba(77,107,133,0.15);color:var(--text3);border:1px solid var(--border);border-radius:20px;margin-left:4px;}
+.cs-filtro{display:flex;gap:6px;padding:8px 10px 0;flex-shrink:0;}
+.cs-filtro-btn{flex:1;padding:5px 8px;background:var(--navy3);border:1px solid var(--border);border-radius:6px;font-size:10px;color:var(--text3);cursor:pointer;transition:all 0.2s;text-align:center;}
+.cs-filtro-btn.ativo{background:rgba(46,123,196,0.15);border-color:var(--blue);color:var(--blue2);}
 .cs-nova-btn{margin:10px;padding:10px;background:rgba(46,123,196,0.1);border:1px dashed var(--border2);border-radius:10px;cursor:pointer;text-align:center;font-size:12px;color:var(--blue2);transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;}
 .cs-nova-btn:hover{background:rgba(46,123,196,0.18);}
 .cs-vazio{text-align:center;padding:40px 20px;color:var(--text3);font-size:12px;}
@@ -3003,14 +3007,36 @@ function csVoltarLista() {
   csCarregarLista();
 }
 
+let _csFiltroAtual = 'abertas';
+function csFiltrar(filtro) {
+  _csFiltroAtual = filtro;
+  ['abertas','encerradas','arquivadas'].forEach(f => {
+    const btn = document.getElementById('cs-filtro-' + f);
+    if (btn) btn.classList.toggle('ativo', f === filtro);
+  });
+  csCarregarLista();
+}
+
 async function csCarregarLista() {
   const lista  = document.getElementById('cs-lista-conversas');
   lista.innerHTML = '<div class="cs-vazio">Carregando...</div>';
   const isAdm = ['admin','gestor'].includes(dadosUsuario?.perfis?.nome);
+
+  // Mostrar filtros só para admin
+  const filtroEl = document.getElementById('cs-filtro');
+  if (filtroEl) filtroEl.style.display = isAdm ? 'flex' : 'none';
+
   let q = sb.from('chat_suporte_conversas')
     .select('*,ultima:chat_suporte_mensagens(conteudo,criado_em,tipo,autor_id,leituras:chat_suporte_leituras(usuario_id))')
     .order('atualizado_em', { ascending: false });
-  if (!isAdm) q = q.eq('criado_por', sessaoUsuario.user.id);
+  if (!isAdm) {
+    q = q.eq('criado_por', sessaoUsuario.user.id).neq('status','arquivada');
+  } else {
+    // Admin filtra por status
+    if (_csFiltroAtual === 'abertas')     q = q.eq('status','aberta');
+    else if (_csFiltroAtual === 'encerradas') q = q.eq('status','fechada');
+    else if (_csFiltroAtual === 'arquivadas') q = q.eq('status','arquivada');
+  }
   const { data, error } = await q;
   if (error) { lista.innerHTML = '<div class="cs-vazio">Erro ao carregar.</div>'; return; }
   document.getElementById('cs-nova-btn').style.display = isAdm ? 'none' : 'flex';
@@ -3094,10 +3120,13 @@ function csAtualizarInputStatus() {
   const inputArea = document.getElementById('cs-tela-chat').querySelector('.cs-input-area');
   const btnFin    = document.getElementById('cs-btn-finalizar');
 
-  // Barra de finalizar só para admin em conversa aberta
+  // Barra de ações só para admin
   const statusBar = document.getElementById('cs-chat-status-bar');
-  if (statusBar) statusBar.style.display = (isAdm && !fechada) ? 'flex' : 'none';
+  const btnArq    = document.getElementById('cs-btn-arquivar');
+  const mostrarBarra = isAdm && (csConvAtual?.status === 'aberta' || csConvAtual?.status === 'fechada');
+  if (statusBar) statusBar.style.display = mostrarBarra ? 'flex' : 'none';
   if (btnFin) btnFin.style.display = (isAdm && !fechada) ? 'flex' : 'none';
+  if (btnArq) btnArq.style.display = (isAdm && fechada) ? 'flex' : 'none';
 
   // Bloquear input se fechada e não é admin
   if (!inputArea) return;
@@ -3114,6 +3143,17 @@ function csAtualizarInputStatus() {
   } else {
     inputArea.style.display = '';
   }
+}
+
+async function csArquivarConversa() {
+  if (!csConvAtual) return;
+  if (!confirm('Arquivar esta conversa? Ela não aparecerá mais na lista padrão.')) return;
+  const { error } = await sb.from('chat_suporte_conversas')
+    .update({ status: 'arquivada' }).eq('id', csConvAtual.id);
+  if (error) { alert('Erro: ' + error.message); return; }
+  csConvAtual.status = 'arquivada';
+  csAtualizarInputStatus();
+  csVoltarLista();
 }
 
 async function csFinalizarConversa() {
@@ -3257,7 +3297,11 @@ function csAssinarConversa(convId) {
 function csAssinarNaoLidas() {
   sb.channel('cs-global')
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_suporte_mensagens'},
-      async()=>{ await csAtualizarBadgeTotal(); }).subscribe();
+      async () => {
+        await csAtualizarBadgeTotal();
+        // Se drawer aberto na lista, recarregar para mostrar badge na conversa
+        if (csAberto && csTelAtual === 'lista') await csCarregarLista();
+      }).subscribe();
 }
 
 async function csAtualizarBadgeTotal() {
@@ -3339,6 +3383,11 @@ function csCorAvatar(id){
 
   <!-- TELA LISTA -->
   <div id="cs-tela-lista" style="display:flex;flex-direction:column;flex:1;min-height:0;">
+    <div class="cs-filtro" id="cs-filtro" style="display:none">
+      <button class="cs-filtro-btn ativo" id="cs-filtro-abertas" onclick="csFiltrar('abertas')">Abertas</button>
+      <button class="cs-filtro-btn" id="cs-filtro-encerradas" onclick="csFiltrar('encerradas')">Encerradas</button>
+      <button class="cs-filtro-btn" id="cs-filtro-arquivadas" onclick="csFiltrar('arquivadas')">Arquivadas</button>
+    </div>
     <div class="cs-lista" id="cs-lista-conversas">
       <div class="cs-vazio">Carregando...</div>
     </div>
@@ -3351,9 +3400,13 @@ function csCorAvatar(id){
   <!-- TELA CHAT -->
   <div id="cs-tela-chat" style="display:none;flex-direction:column;flex:1;min-height:0;">
     <div id="cs-chat-status-bar" style="display:none;padding:6px 14px;background:rgba(224,85,85,0.06);border-bottom:1px solid rgba(224,85,85,0.15);text-align:right;flex-shrink:0;">
+      <button id="cs-btn-arquivar" onclick="csArquivarConversa()" style="display:none;background:transparent;border:none;color:var(--text3);font-size:11px;cursor:pointer;align-items:center;gap:5px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+        Arquivar
+      </button>
       <button id="cs-btn-finalizar" onclick="csFinalizarConversa()" style="background:transparent;border:none;color:var(--danger);font-size:11px;cursor:pointer;display:flex;align-items:center;gap:5px;margin-left:auto;">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        Finalizar conversa
+        Finalizar
       </button>
     </div>
     <div class="cs-chat">
