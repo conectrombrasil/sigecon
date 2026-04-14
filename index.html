@@ -1102,6 +1102,83 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
   body.light .sidebar { background: #FFFFFF; }
   body.light .sb-grupo-icon { background: rgba(46,123,196,0.08); }
 
+/* ══════════════════════════════════════════════════════════
+   CHAT SUPORTE — WIDGET FLUTUANTE
+   ══════════════════════════════════════════════════════════ */
+.cs-fab{position:fixed;bottom:28px;right:28px;width:52px;height:52px;background:var(--blue);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(46,123,196,0.5);transition:all 0.2s;z-index:900;}
+.cs-fab:hover{background:var(--blue2);transform:scale(1.08);}
+.cs-fab svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.cs-badge{position:absolute;top:-4px;right:-4px;background:#E05555;color:#fff;border-radius:20px;font-size:10px;font-weight:700;padding:1px 6px;min-width:18px;text-align:center;display:none;border:2px solid var(--navy);}
+
+.cs-drawer{position:fixed;bottom:92px;right:28px;width:360px;max-width:calc(100vw - 40px);height:560px;max-height:calc(100vh - 120px);background:var(--navy2);border:1px solid var(--border2);border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,0.5);display:none;flex-direction:column;overflow:hidden;z-index:900;animation:fadeUp 0.2s ease;}
+.cs-drawer.aberto{display:flex;}
+
+.cs-header{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.cs-header-icon{width:36px;height:36px;background:rgba(46,123,196,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;}
+.cs-header-icon svg{width:18px;height:18px;stroke:var(--blue2);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.cs-header-title{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;color:var(--text);}
+.cs-header-sub{font-size:11px;color:var(--text3);margin-top:1px;}
+.cs-header-close{margin-left:auto;background:transparent;border:none;cursor:pointer;color:var(--text3);font-size:20px;line-height:1;padding:4px;}
+.cs-header-close:hover{color:var(--text);}
+.cs-header-back{background:transparent;border:none;cursor:pointer;color:var(--text3);display:flex;align-items:center;gap:4px;font-size:12px;padding:4px 0;transition:color 0.2s;}
+.cs-header-back:hover{color:var(--blue2);}
+
+/* LISTA DE CONVERSAS */
+.cs-lista{flex:1;overflow-y:auto;padding:8px;}
+.cs-conv-item{display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:10px;cursor:pointer;transition:all 0.15s;}
+.cs-conv-item:hover{background:var(--navy3);}
+.cs-conv-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:#fff;flex-shrink:0;}
+.cs-conv-info{flex:1;min-width:0;}
+.cs-conv-nome{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cs-conv-preview{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+.cs-conv-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.cs-conv-hora{font-size:10px;color:var(--text3);}
+.cs-conv-unread{background:var(--blue);color:#fff;border-radius:20px;font-size:10px;font-weight:700;padding:1px 6px;min-width:18px;text-align:center;}
+.cs-nova-btn{margin:10px;padding:10px;background:rgba(46,123,196,0.1);border:1px dashed var(--border2);border-radius:10px;cursor:pointer;text-align:center;font-size:12px;color:var(--blue2);transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.cs-nova-btn:hover{background:rgba(46,123,196,0.18);}
+.cs-vazio{text-align:center;padding:40px 20px;color:var(--text3);font-size:12px;}
+
+/* TELA DE CHAT */
+.cs-chat{flex:1;display:flex;flex-direction:column;min-height:0;}
+.cs-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;min-height:0;}
+.cs-msg{display:flex;gap:8px;align-items:flex-end;}
+.cs-msg.minha{flex-direction:row-reverse;}
+.cs-msg-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+.cs-bubble{max-width:72%;background:var(--navy3);border:1px solid var(--border);border-radius:12px 12px 12px 2px;padding:8px 11px;}
+.cs-msg.minha .cs-bubble{background:rgba(46,123,196,0.15);border-color:rgba(46,123,196,0.3);border-radius:12px 12px 2px 12px;}
+.cs-bubble-nome{font-size:9px;font-weight:600;letter-spacing:0.5px;color:var(--blue2);margin-bottom:3px;text-transform:uppercase;}
+.cs-bubble-texto{font-size:12px;color:var(--text);line-height:1.5;word-break:break-word;}
+.cs-bubble-hora{font-size:9px;color:var(--text3);margin-top:4px;text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:3px;}
+.cs-bubble-sistema{background:rgba(224,168,48,0.08);border:1px solid rgba(224,168,48,0.2);border-radius:8px;padding:6px 10px;text-align:center;font-size:10px;color:var(--warning);margin:0 auto;max-width:90%;}
+.cs-bubble-arquivo{display:flex;align-items:center;gap:6px;background:rgba(46,123,196,0.08);border:1px solid var(--border);border-radius:6px;padding:6px 8px;text-decoration:none;color:var(--text2);font-size:11px;}
+.cs-bubble-arquivo:hover{border-color:var(--blue);}
+.cs-bubble-midia img{max-width:100%;border-radius:6px;cursor:zoom-in;}
+.cs-tick{font-size:11px;}
+.cs-tick.enviado{color:var(--text3);}
+.cs-tick.entregue{color:var(--text3);}
+.cs-tick.visualizado{color:#4FC3F7;}
+
+.cs-input-area{padding:10px 12px;border-top:1px solid var(--border);flex-shrink:0;}
+.cs-preview{display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(46,123,196,0.08);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;font-size:11px;color:var(--text2);}
+.cs-preview-remove{margin-left:auto;cursor:pointer;color:var(--danger);background:none;border:none;font-size:14px;}
+.cs-input-row{display:flex;gap:6px;align-items:flex-end;}
+.cs-input-row textarea{flex:1;background:var(--navy);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:12px;font-family:'Inter',sans-serif;outline:none;resize:none;min-height:36px;max-height:80px;line-height:1.4;transition:border-color 0.2s;}
+.cs-input-row textarea:focus{border-color:var(--blue);}
+.cs-input-row textarea::placeholder{color:var(--text3);}
+.cs-btn-icon{width:34px;height:34px;background:var(--navy3);border:1px solid var(--border);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
+.cs-btn-icon:hover{border-color:var(--blue);}
+.cs-btn-enviar{width:34px;height:34px;background:var(--blue);border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
+.cs-btn-enviar:hover{background:var(--blue2);}
+.cs-btn-enviar:disabled{opacity:0.5;cursor:not-allowed;}
+
+/* tag admin na lista */
+.cs-tag-admin{font-size:9px;padding:1px 5px;background:rgba(224,168,48,0.12);color:var(--warning);border:1px solid rgba(224,168,48,0.25);border-radius:20px;margin-left:4px;}
+
+body.light .cs-drawer{background:#fff;}
+body.light .cs-bubble{background:#F0F4F8;}
+body.light .cs-msg.minha .cs-bubble{background:rgba(46,123,196,0.1);}
+body.light .cs-input-row textarea{background:#F8FAFC;color:var(--text);}
+
 </style>
 <script>(function(){if(localStorage.getItem("sigecon_tema")==="light")document.body.classList.add("light");})()</script>
 </head>
@@ -1985,6 +2062,8 @@ async function mostrarModulos() {
   // Atualiza sidebar com grupos (force reload do banco)
   await carregarGruposSidebar();
   renderizarSidebar();
+  // Inicializar widget de suporte
+  csInit();
 }
 
 const MODULO_URLS = {
@@ -2880,6 +2959,342 @@ window.addEventListener('DOMContentLoaded', function(){
   if(btn) btn.textContent = document.body.classList.contains('light') ? '☀️' : '🌙';
 });
 
+
+// ══════════════════════════════════════════════════════════
+// CHAT SUPORTE — WIDGET FLUTUANTE
+// ══════════════════════════════════════════════════════════
+const GAS_DRIVE_URL = 'https://script.google.com/macros/s/AKfycbywWdSN8x1sq2K5lrwcveNKqgMvPODrP9ULtJpwo2pB4Gf-QoehBlaM08od_slvdM5j/exec';
+
+let csAberto=false, csTelAtual='lista', csConvAtual=null, csSubscription=null, csAnexo=null, csNaoLidas=0;
+
+async function csInit() {
+  if (!sessaoUsuario) return;
+  await csAtualizarBadgeTotal();
+  csAssinarNaoLidas();
+}
+
+function csToggle() {
+  csAberto = !csAberto;
+  if (csAberto) { document.getElementById('cs-drawer').classList.add('aberto'); csCarregarLista(); }
+  else csFechar();
+}
+
+function csFechar() {
+  csAberto = false;
+  document.getElementById('cs-drawer').classList.remove('aberto');
+  if (csSubscription) { sb.removeChannel(csSubscription); csSubscription = null; }
+}
+
+function csVoltarLista() {
+  if (csSubscription) { sb.removeChannel(csSubscription); csSubscription = null; }
+  csConvAtual = null; csTelAtual = 'lista';
+  document.getElementById('cs-tela-lista').style.display = 'flex';
+  document.getElementById('cs-tela-chat').style.display  = 'none';
+  document.getElementById('cs-titulo').textContent    = 'Suporte SIGECON';
+  document.getElementById('cs-subtitulo').textContent = 'Tire suas duvidas com a equipe';
+  const header = document.getElementById('cs-drawer-header');
+  const backBtn = header.querySelector('.cs-header-back');
+  if (backBtn) backBtn.remove();
+  document.querySelector('.cs-header-close').style.display = '';
+  csCarregarLista();
+}
+
+async function csCarregarLista() {
+  const lista  = document.getElementById('cs-lista-conversas');
+  lista.innerHTML = '<div class="cs-vazio">Carregando...</div>';
+  const isAdm = ['admin','gestor'].includes(dadosUsuario?.perfis?.nome);
+  let q = sb.from('chat_suporte_conversas')
+    .select('*,ultima:chat_suporte_mensagens(conteudo,criado_em,tipo)')
+    .order('atualizado_em', { ascending: false });
+  if (!isAdm) q = q.eq('criado_por', sessaoUsuario.user.id);
+  const { data, error } = await q;
+  if (error) { lista.innerHTML = '<div class="cs-vazio">Erro ao carregar.</div>'; return; }
+  document.getElementById('cs-nova-btn').style.display = isAdm ? 'none' : 'flex';
+  if (!data?.length) {
+    lista.innerHTML = isAdm
+      ? '<div class="cs-vazio">Nenhuma conversa ainda.</div>'
+      : '<div class="cs-vazio">Voce ainda nao iniciou nenhuma conversa.</div>';
+    return;
+  }
+  lista.innerHTML = data.map(conv => {
+    const ini  = (conv.titulo||'?').charAt(0).toUpperCase();
+    const cor  = csCorAvatar(conv.id);
+    const prev = conv.ultima?.[0]?.tipo === 'arquivo' ? 'Arquivo'
+               : conv.ultima?.[0]?.tipo === 'imagem'  ? 'Imagem'
+               : (conv.ultima?.[0]?.conteudo || 'Sem mensagens');
+    const hora = conv.atualizado_em ? new Date(conv.atualizado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '';
+    return '<div class="cs-conv-item" onclick="csAbrirConversa(''+conv.id+'',''+encodeURIComponent(conv.titulo||'Conversa')+'')">'
+      + '<div class="cs-conv-avatar" style="background:'+cor+'">'+ini+'</div>'
+      + '<div class="cs-conv-info"><div class="cs-conv-nome">'+conv.titulo+(isAdm?'<span class="cs-tag-admin">aberta</span>':'')+'</div>'
+      + '<div class="cs-conv-preview">'+prev.substring(0,50)+'</div></div>'
+      + '<div class="cs-conv-meta"><span class="cs-conv-hora">'+hora+'</span></div></div>';
+  }).join('');
+}
+
+async function csNovaConversa() {
+  const titulo = 'Duvida - ' + (dadosUsuario?.nome||'Usuario') + ' ' + new Date().toLocaleDateString('pt-BR');
+  const { data, error } = await sb.from('chat_suporte_conversas')
+    .insert({ titulo, criado_por: sessaoUsuario.user.id, status: 'aberta' }).select().single();
+  if (error) { alert('Erro: '+error.message); return; }
+  csAbrirConversa(data.id, encodeURIComponent(data.titulo));
+}
+
+async function csAbrirConversa(convId, tituloEnc) {
+  const titulo = decodeURIComponent(tituloEnc);
+  csConvAtual = { id: convId, titulo };
+  csTelAtual  = 'chat';
+  document.getElementById('cs-tela-lista').style.display = 'none';
+  document.getElementById('cs-tela-chat').style.display  = 'flex';
+  document.getElementById('cs-titulo').textContent    = titulo;
+  document.getElementById('cs-subtitulo').textContent = '';
+  const header   = document.getElementById('cs-drawer-header');
+  const closeBtn = document.querySelector('.cs-header-close');
+  if (!header.querySelector('.cs-header-back')) {
+    const back = document.createElement('button');
+    back.className = 'cs-header-back';
+    back.innerHTML = '&#x2190; Voltar';
+    back.onclick = csVoltarLista;
+    header.insertBefore(back, header.querySelector('.cs-header-icon'));
+    if (closeBtn) closeBtn.style.display = 'none';
+  }
+  document.getElementById('cs-texto').value = '';
+  csAnexo = null;
+  document.getElementById('cs-preview').style.display = 'none';
+  await csCarregarMsgs(convId);
+  csAssinarConversa(convId);
+}
+
+async function csCarregarMsgs(convId) {
+  const el = document.getElementById('cs-msgs');
+  el.innerHTML = '<div class="cs-vazio" style="padding:20px"><div style="width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.6s linear infinite;margin:0 auto"></div></div>';
+  const { data, error } = await sb.from('chat_suporte_mensagens')
+    .select('*,autor:usuarios!chat_suporte_mensagens_autor_id_fkey(nome),leituras:chat_suporte_leituras(usuario_id)')
+    .eq('conversa_id', convId).order('criado_em');
+  if (error) { el.innerHTML = '<div class="cs-vazio">Erro.</div>'; return; }
+  const naoLidas = (data||[]).filter(m =>
+    m.autor_id !== sessaoUsuario.user.id && m.tipo !== 'sistema' &&
+    !(m.leituras||[]).some(l => l.usuario_id === sessaoUsuario.user.id));
+  if (naoLidas.length) {
+    await sb.from('chat_suporte_leituras').upsert(
+      naoLidas.map(m => ({ mensagem_id: m.id, usuario_id: sessaoUsuario.user.id })),
+      { onConflict: 'mensagem_id,usuario_id', ignoreDuplicates: true });
+  }
+  if (!data?.length) { el.innerHTML = '<div class="cs-vazio">Nenhuma mensagem ainda.</div>'; return; }
+  el.innerHTML = (data||[]).map(m => csRenderMsg(m)).join('');
+  csScrollFim();
+  await csAtualizarBadgeTotal();
+}
+
+function csRenderMsg(m) {
+  const nl = t => (t||'').split('\n').join('<br>');
+  if (m.tipo === 'sistema') return '<div class="cs-bubble-sistema">'+nl(m.conteudo)+'</div>';
+  const minha = m.autor_id === sessaoUsuario.user.id;
+  const nome  = m.autor?.nome || '?';
+  const ini   = nome.charAt(0).toUpperCase();
+  const cor   = csCorAvatar(m.autor_id);
+  const hora  = new Date(m.criado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  let cont = '';
+  if (m.tipo === 'texto') {
+    cont = '<div class="cs-bubble-texto">'+nl(m.conteudo)+'</div>';
+  } else if (m.tipo === 'imagem') {
+    const imgId = 'csimg-'+m.id;
+    cont = '<div class="cs-bubble-midia"><img id="'+imgId+'" alt="imagem" style="max-width:100%;border-radius:6px;min-height:40px;background:var(--navy3)"/><span id="'+imgId+'-load" style="font-size:10px;color:var(--text3)">Carregando...</span></div>';
+    if (m.conteudo) cont += '<div class="cs-bubble-texto" style="margin-top:3px">'+nl(m.conteudo)+'</div>';
+    setTimeout(() => csCarregarImg(imgId, m.drive_id), 80);
+  } else if (m.tipo === 'arquivo') {
+    const url = GAS_DRIVE_URL+'?acao=baixar&driveId='+m.drive_id+'&token='+csToken();
+    cont = '<div class="cs-bubble-midia"><a class="cs-bubble-arquivo" href="'+url+'" target="_blank">&#x1F4CE; '+m.nome_arquivo+'</a></div>';
+    if (m.conteudo) cont += '<div class="cs-bubble-texto" style="margin-top:3px">'+nl(m.conteudo)+'</div>';
+  }
+  let tick = '';
+  if (minha) {
+    const lids = (m.leituras||[]).filter(l => l.usuario_id !== sessaoUsuario.user.id);
+    tick = '<span class="cs-tick '+(lids.length>0?'visualizado':'enviado')+'">'+(lids.length>0?'&#x2713;&#x2713;':'&#x2713;')+'</span>';
+  }
+  const nomeHtml = '<div class="cs-bubble-nome">'+(minha?'Voce':nome)+'</div>';
+  return '<div class="cs-msg'+(minha?' minha':'')+'"><div class="cs-msg-avatar" style="background:'+cor+'">'+ini+'</div>'
+    +'<div class="cs-bubble">'+nomeHtml+cont+'<div class="cs-bubble-hora">'+hora+tick+'</div></div></div>';
+}
+
+async function csCarregarImg(imgId, driveId) {
+  const imgEl=document.getElementById(imgId), loadEl=document.getElementById(imgId+'-load');
+  if (!imgEl) return;
+  try {
+    const resp = await fetch(GAS_DRIVE_URL+'?acao=base64&driveId='+driveId+'&token='+csToken());
+    const data = await resp.json();
+    if (!data.sucesso||!data.base64) throw new Error('Falha');
+    const bytes=atob(data.base64), arr=new Uint8Array(bytes.length);
+    for(let i=0;i<bytes.length;i++) arr[i]=bytes.charCodeAt(i);
+    const blobUrl=URL.createObjectURL(new Blob([arr],{type:data.mimeType}));
+    imgEl.src=blobUrl; imgEl.style.minHeight=''; imgEl.style.background='';
+    imgEl.onclick=()=>window.open(blobUrl,'_blank');
+    if(loadEl) loadEl.remove();
+  } catch { if(imgEl)imgEl.style.display='none'; if(loadEl)loadEl.textContent='Erro.'; }
+}
+
+async function csEnviar() {
+  if (!csConvAtual) return;
+  const texto = document.getElementById('cs-texto').value.trim();
+  const btn   = document.getElementById('cs-btn-enviar');
+  if (!texto && !csAnexo) return;
+  btn.disabled = true;
+  try {
+    if (csAnexo) {
+      const base64 = await csLerBase64(csAnexo.arquivo);
+      const result = await csGasPost({ acao:'drive.upload', token:csToken(), modulo:'CHAT_SUPORTE',
+        subpasta:csConvAtual.id, nomeArquivo:csAnexo.nome, mimeType:csAnexo.mimeType, base64,
+        idRegistro:csConvAtual.id, enviadoPor:sessaoUsuario.user.id });
+      if (!result.sucesso) throw new Error(result.erro);
+      const tipo = csAnexo.mimeType.startsWith('image/') ? 'imagem' : 'arquivo';
+      await csInserir(texto, tipo, { drive_id:result.dados.driveId, drive_url:result.dados.driveUrl, nome_arquivo:csAnexo.nome });
+      csAnexo = null; document.getElementById('cs-preview').style.display = 'none';
+    } else { await csInserir(texto, 'texto'); }
+    document.getElementById('cs-texto').value = '';
+    document.getElementById('cs-texto').style.height = 'auto';
+    await sb.from('chat_suporte_conversas').update({ atualizado_em: new Date().toISOString() }).eq('id', csConvAtual.id);
+    if (csSubscription) { sb.removeChannel(csSubscription); csSubscription = null; }
+    await csCarregarMsgs(csConvAtual.id);
+    csAssinarConversa(csConvAtual.id);
+  } catch(err) { alert('Erro: '+err.message); }
+  finally { btn.disabled = false; }
+}
+
+async function csInserir(conteudo, tipo, extra) {
+  extra = extra||{};
+  const { error } = await sb.from('chat_suporte_mensagens').insert({
+    conversa_id:csConvAtual.id, autor_id:sessaoUsuario.user.id, tipo,
+    conteudo:conteudo||null, drive_id:extra.drive_id||null,
+    drive_url:extra.drive_url||null, nome_arquivo:extra.nome_arquivo||null });
+  if (error) throw new Error(error.message);
+}
+
+function csAssinarConversa(convId) {
+  csSubscription = sb.channel('cs-'+convId)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_suporte_mensagens',filter:'conversa_id=eq.'+convId},
+      async(payload)=>{
+        const {data:autor}=await sb.from('usuarios').select('nome').eq('id',payload.new.autor_id).single();
+        const msg={...payload.new,autor,leituras:[]};
+        if(msg.autor_id!==sessaoUsuario.user.id){
+          await sb.from('chat_suporte_leituras').upsert([{mensagem_id:msg.id,usuario_id:sessaoUsuario.user.id}],{onConflict:'mensagem_id,usuario_id',ignoreDuplicates:true});
+          msg.leituras=[{usuario_id:sessaoUsuario.user.id}];
+        }
+        const el=document.getElementById('cs-msgs');
+        const vazio=el.querySelector('.cs-vazio'); if(vazio)vazio.remove();
+        el.insertAdjacentHTML('beforeend',csRenderMsg(msg)); csScrollFim();
+      }).subscribe();
+}
+
+function csAssinarNaoLidas() {
+  sb.channel('cs-global')
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_suporte_mensagens'},
+      async()=>{ await csAtualizarBadgeTotal(); }).subscribe();
+}
+
+async function csAtualizarBadgeTotal() {
+  if (!sessaoUsuario) return;
+  const isAdm = ['admin','gestor'].includes(dadosUsuario?.perfis?.nome);
+  let convIds = [];
+  if (!isAdm) {
+    const {data:convs}=await sb.from('chat_suporte_conversas').select('id').eq('criado_por',sessaoUsuario.user.id);
+    convIds = (convs||[]).map(c=>c.id);
+    if (!convIds.length) { csAtualizarBadge(0); return; }
+  }
+  let q = sb.from('chat_suporte_mensagens')
+    .select('id,leituras:chat_suporte_leituras(usuario_id)')
+    .neq('autor_id',sessaoUsuario.user.id);
+  if (!isAdm) q = q.in('conversa_id', convIds);
+  const {data}=await q;
+  const total=(data||[]).filter(m=>!(m.leituras||[]).some(l=>l.usuario_id===sessaoUsuario.user.id)).length;
+  csAtualizarBadge(total);
+}
+
+function csAtualizarBadge(n) {
+  csNaoLidas=n;
+  const badge=document.getElementById('cs-badge'); if(!badge)return;
+  badge.textContent=n>99?'99+':n; badge.style.display=n>0?'block':'none';
+}
+
+function csFileSelected() {
+  const input=document.getElementById('cs-file-input'), arq=input.files[0]; if(!arq)return;
+  if(arq.size>10*1024*1024){alert('Maximo 10 MB.');return;}
+  csAnexo={arquivo:arq,nome:arq.name,mimeType:arq.type||'application/octet-stream'};
+  const prev=document.getElementById('cs-preview'); prev.style.display='flex';
+  if(arq.type.startsWith('image/')){
+    const r=new FileReader(); r.onload=e=>{prev.innerHTML='<img src="'+e.target.result+'" style="height:48px;border-radius:5px;object-fit:cover;max-width:70px;"/><span style="flex:1">'+arq.name+'</span><button class="cs-preview-remove" onclick="csRemoverAnexo()">x</button>';};
+    r.readAsDataURL(arq);
+  } else { prev.innerHTML='&#x1F4CE; <span style="flex:1">'+arq.name+'</span><button class="cs-preview-remove" onclick="csRemoverAnexo()">x</button>'; }
+  input.value='';
+}
+function csRemoverAnexo(){csAnexo=null;document.getElementById('cs-preview').style.display='none';}
+function csScrollFim(){const el=document.getElementById('cs-msgs');if(el)el.scrollTop=el.scrollHeight;}
+function csToken(){return btoa(sessaoUsuario.user.id+':'+Date.now()+':sapiens');}
+function csLerBase64(arq){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=()=>rej(new Error('erro'));r.readAsDataURL(arq);});}
+async function csGasPost(payload){
+  const resp=await fetch(GAS_DRIVE_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(payload)});
+  if(!resp.ok)throw new Error('HTTP '+resp.status);
+  const text=await resp.text();try{return JSON.parse(text);}catch{throw new Error('GAS invalido');}
+}
+function csCorAvatar(id){
+  const cores=['#2E7BC4','#2ECC8A','#E0A830','#9B59B6','#E05555','#1ABC9C','#E67E22'];
+  if(!id)return cores[0];let h=0;for(let i=0;i<id.length;i++)h=id.charCodeAt(i)+((h<<5)-h);
+  return cores[Math.abs(h)%cores.length];
+}
+
 </script>
+<!-- ══════════════════════════════════════════════════════
+     CHAT SUPORTE — WIDGET FLUTUANTE
+     ══════════════════════════════════════════════════════ -->
+<button class="cs-fab" id="cs-fab" onclick="csToggle()" title="Suporte / Mensagens">
+  <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+  <span class="cs-badge" id="cs-badge">0</span>
+</button>
+
+<div class="cs-drawer" id="cs-drawer">
+  <!-- HEADER -->
+  <div class="cs-header" id="cs-drawer-header">
+    <div class="cs-header-icon">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    </div>
+    <div>
+      <div class="cs-header-title" id="cs-titulo">Suporte SIGECON</div>
+      <div class="cs-header-sub" id="cs-subtitulo">Tire suas dúvidas com a equipe</div>
+    </div>
+    <button class="cs-header-close" onclick="csFechar()">×</button>
+  </div>
+
+  <!-- TELA LISTA -->
+  <div id="cs-tela-lista" style="display:flex;flex-direction:column;flex:1;min-height:0;">
+    <div class="cs-lista" id="cs-lista-conversas">
+      <div class="cs-vazio">Carregando...</div>
+    </div>
+    <div class="cs-nova-btn" id="cs-nova-btn" onclick="csNovaConversa()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nova conversa
+    </div>
+  </div>
+
+  <!-- TELA CHAT -->
+  <div id="cs-tela-chat" style="display:none;flex-direction:column;flex:1;min-height:0;">
+    <div class="cs-chat">
+      <div class="cs-msgs" id="cs-msgs"></div>
+      <div class="cs-input-area">
+        <div id="cs-preview" style="display:none" class="cs-preview"></div>
+        <div class="cs-input-row">
+          <textarea id="cs-texto" placeholder="Digite sua mensagem..." rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();csEnviar()}"
+            oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
+          <button class="cs-btn-icon" onclick="document.getElementById('cs-file-input').click()" title="Anexar">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+          <button class="cs-btn-enviar" id="cs-btn-enviar" onclick="csEnviar()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+        <input type="file" id="cs-file-input" style="display:none" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" onchange="csFileSelected()"/>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
