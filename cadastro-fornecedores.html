@@ -1179,6 +1179,16 @@ async function uploadDocumentoSocioModal(file){
   }
 }
 
+async function excluirDocSocioInline(id, driveId, socioId){
+  if(!confirm('Remover este documento?')) return;
+  await sb.from('documentos').update({ativo:false, editado_por:sessao.user.id}).eq('id',id);
+  fetch(DRIVE_GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify({acao:'drive.excluir',token:btoa(sessao.user.id+':'+Date.now()+':sigecon'),driveId,excluirDrive:true})
+  }).catch(()=>{});
+  toast('Documento removido.','sucesso');
+  carregarDocsSocio(socioId);
+}
+
 async function excluirDocSocio(el, id, driveId){
   if(!confirm('Remover este documento?')) return;
   await sb.from('documentos').update({ativo:false,editado_por:sessao.user.id}).eq('id',id);
@@ -1203,6 +1213,7 @@ async function carregarDocsSocio(socioId){
     '<span style="font-size:11px;color:var(--text2)">'+d.nome_arquivo+'</span>'+
     (d.descricao?'<span style="font-size:10px;color:var(--text3);font-style:italic">'+d.descricao+'</span>':'')+
     '<button class="btn-icon" style="padding:1px 5px;font-size:11px" onclick="baixarArquivo(\''+d.drive_id+'\',\''+encodeURIComponent(d.nome_arquivo||'arquivo')+'\')">⬇</button>'+
+    '<button class="btn-icon danger" style="padding:1px 5px;font-size:11px" onclick="excluirDocSocioInline(\''+d.id+'\',\''+d.drive_id+'\',\''+socioId+'\')">✕</button>'+
     '</span>'
   ).join('');
 }
