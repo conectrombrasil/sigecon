@@ -1133,7 +1133,11 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
 .cs-conv-preview{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
 .cs-conv-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
 .cs-conv-hora{font-size:10px;color:var(--text3);}
-.cs-conv-unread{background:var(--blue);color:#fff;border-radius:20px;font-size:10px;font-weight:700;padding:1px 6px;min-width:18px;text-align:center;}
+.cs-conv-unread{background:#E05555;color:#fff;border-radius:20px;font-size:10px;font-weight:700;padding:1px 6px;min-width:18px;text-align:center;}
+.cs-tag-fechada{font-size:9px;padding:1px 6px;background:rgba(77,107,133,0.2);color:var(--text3);border:1px solid var(--border);border-radius:20px;margin-left:4px;}
+.cs-bloqueado{padding:10px 12px;background:rgba(77,107,133,0.08);border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--text3);}
+.cs-btn-finalizar{margin:0 12px 10px;padding:8px;background:rgba(224,85,85,0.08);border:1px solid rgba(224,85,85,0.25);border-radius:8px;cursor:pointer;text-align:center;font-size:11px;color:var(--danger);transition:all 0.2s;display:none;}
+.cs-btn-finalizar:hover{background:rgba(224,85,85,0.15);}
 .cs-nova-btn{margin:10px;padding:10px;background:rgba(46,123,196,0.1);border:1px dashed var(--border2);border-radius:10px;cursor:pointer;text-align:center;font-size:12px;color:var(--blue2);transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;}
 .cs-nova-btn:hover{background:rgba(46,123,196,0.18);}
 .cs-vazio{text-align:center;padding:40px 20px;color:var(--text3);font-size:12px;}
@@ -3004,7 +3008,7 @@ async function csCarregarLista() {
   lista.innerHTML = '<div class="cs-vazio">Carregando...</div>';
   const isAdm = ['admin','gestor'].includes(dadosUsuario?.perfis?.nome);
   let q = sb.from('chat_suporte_conversas')
-    .select('*,ultima:chat_suporte_mensagens(conteudo,criado_em,tipo)')
+    .select('*,ultima:chat_suporte_mensagens(conteudo,criado_em,tipo,autor_id,leituras:chat_suporte_leituras(usuario_id))')
     .order('atualizado_em', { ascending: false });
   if (!isAdm) q = q.eq('criado_por', sessaoUsuario.user.id);
   const { data, error } = await q;
@@ -3016,18 +3020,29 @@ async function csCarregarLista() {
       : '<div class="cs-vazio">Voce ainda nao iniciou nenhuma conversa.</div>';
     return;
   }
-  lista.innerHTML = data.map(conv => {
-    const ini  = (conv.titulo||'?').charAt(0).toUpperCase();
-    const cor  = csCorAvatar(conv.id);
-    const prev = conv.ultima?.[0]?.tipo === 'arquivo' ? 'Arquivo'
-               : conv.ultima?.[0]?.tipo === 'imagem'  ? 'Imagem'
-               : (conv.ultima?.[0]?.conteudo || 'Sem mensagens');
-    const hora = conv.atualizado_em ? new Date(conv.atualizado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '';
-    return '<div class="cs-conv-item" onclick="csAbrirConversa(&quot;'+conv.id+'&quot;,&quot;'+encodeURIComponent(conv.titulo||'Conversa')+'&quot;)">'
-      + '<div class="cs-conv-avatar" style="background:'+cor+'">'+ini+'</div>'
-      + '<div class="cs-conv-info"><div class="cs-conv-nome">'+conv.titulo+(isAdm?'<span class="cs-tag-admin">aberta</span>':'')+'</div>'
-      + '<div class="cs-conv-preview">'+prev.substring(0,50)+'</div></div>'
-      + '<div class="cs-conv-meta"><span class="cs-conv-hora">'+hora+'</span></div></div>';
+  window._csConvCache = data;
+  lista.innerHTML = data.map(function(conv, idx) {
+    var ini2  = (conv.titulo||'?').charAt(0).toUpperCase();
+    var cor2  = csCorAvatar(conv.id);
+    var ult   = (conv.ultima && conv.ultima[0]) ? conv.ultima[0] : null;
+    var prev  = !ult ? 'Sem mensagens'
+              : ult.tipo === 'arquivo' ? 'Arquivo'
+              : ult.tipo === 'imagem'  ? 'Imagem'
+              : (ult.conteudo || 'Sem mensagens');
+    var hora  = conv.atualizado_em ? new Date(conv.atualizado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '';
+    var fechada  = conv.status === 'fechada';
+    var naoLida  = ult && ult.autor_id !== sessaoUsuario.user.id &&
+      !(ult.leituras||[]).some(function(l){ return l.usuario_id === sessaoUsuario.user.id; });
+    var tagStatus = fechada
+      ? '<span class="cs-tag-fechada">encerrada</span>'
+      : (isAdm ? '<span class="cs-tag-admin">aberta</span>' : '');
+    return '<div class="cs-conv-item" onclick="csAbrirConvIdx(' + idx + ')">'
+      + '<div class="cs-conv-avatar" style="background:' + cor2 + '">' + ini2 + '</div>'
+      + '<div class="cs-conv-info"><div class="cs-conv-nome">' + conv.titulo + tagStatus + '</div>'
+      + '<div class="cs-conv-preview">' + prev.substring(0,50) + '</div></div>'
+      + '<div class="cs-conv-meta"><span class="cs-conv-hora">' + hora + '</span>'
+      + (naoLida ? '<span class="cs-conv-unread">!</span>' : '')
+      + '</div></div>';
   }).join('');
 }
 
@@ -3039,8 +3054,13 @@ async function csNovaConversa() {
   csAbrirConversa(data.id, encodeURIComponent(data.titulo));
 }
 
-async function csAbrirConversa(convId, tituloEnc) {
-  const titulo = decodeURIComponent(tituloEnc);
+function csAbrirConvIdx(idx) {
+  var conv = (window._csConvCache || [])[idx];
+  if (!conv) return;
+  csAbrirConversa(conv.id, conv.titulo);
+}
+
+async function csAbrirConversa(convId, titulo) {
   csConvAtual = { id: convId, titulo };
   csTelAtual  = 'chat';
   document.getElementById('cs-tela-lista').style.display = 'none';
@@ -3060,8 +3080,56 @@ async function csAbrirConversa(convId, tituloEnc) {
   document.getElementById('cs-texto').value = '';
   csAnexo = null;
   document.getElementById('cs-preview').style.display = 'none';
+  // Buscar status da conversa
+  const { data: convData } = await sb.from('chat_suporte_conversas').select('status').eq('id', convId).single();
+  csConvAtual.status = convData?.status || 'aberta';
+  csAtualizarInputStatus();
   await csCarregarMsgs(convId);
   csAssinarConversa(convId);
+}
+
+function csAtualizarInputStatus() {
+  const isAdm   = ['admin','gestor'].includes(dadosUsuario?.perfis?.nome);
+  const fechada = csConvAtual?.status === 'fechada';
+  const inputArea = document.getElementById('cs-tela-chat').querySelector('.cs-input-area');
+  const btnFin    = document.getElementById('cs-btn-finalizar');
+
+  // Botão finalizar só para admin em conversa aberta
+  if (btnFin) btnFin.style.display = (isAdm && !fechada) ? 'block' : 'none';
+
+  // Bloquear input se fechada e não é admin
+  if (!inputArea) return;
+  const bloqueado = fechada && !isAdm;
+  // Remover aviso anterior
+  const avisoAnt = inputArea.parentNode.querySelector('.cs-bloqueado');
+  if (avisoAnt) avisoAnt.remove();
+  if (bloqueado) {
+    inputArea.style.display = 'none';
+    const aviso = document.createElement('div');
+    aviso.className = 'cs-bloqueado';
+    aviso.textContent = '🔒 Esta conversa foi encerrada.';
+    inputArea.parentNode.appendChild(aviso);
+  } else {
+    inputArea.style.display = '';
+  }
+}
+
+async function csFinalizarConversa() {
+  if (!csConvAtual) return;
+  if (!confirm('Finalizar esta conversa? O usuário não poderá mais enviar mensagens.')) return;
+  const { error } = await sb.from('chat_suporte_conversas')
+    .update({ status: 'fechada' }).eq('id', csConvAtual.id);
+  if (error) { alert('Erro: ' + error.message); return; }
+  csConvAtual.status = 'fechada';
+  // Inserir mensagem de sistema
+  await sb.from('chat_suporte_mensagens').insert({
+    conversa_id: csConvAtual.id, autor_id: sessaoUsuario.user.id,
+    tipo: 'sistema',
+    conteudo: '🔒 Conversa encerrada por ' + (dadosUsuario?.nome || 'admin') + ' em '
+      + new Date().toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) + '.',
+  });
+  csAtualizarInputStatus();
+  await csCarregarMsgs(csConvAtual.id);
 }
 
 async function csCarregarMsgs(convId) {
@@ -3271,6 +3339,9 @@ function csCorAvatar(id){
   <div id="cs-tela-lista" style="display:flex;flex-direction:column;flex:1;min-height:0;">
     <div class="cs-lista" id="cs-lista-conversas">
       <div class="cs-vazio">Carregando...</div>
+    </div>
+    <div class="cs-btn-finalizar" id="cs-btn-finalizar" onclick="csFinalizarConversa()">
+      &#x2713; Finalizar conversa
     </div>
     <div class="cs-nova-btn" id="cs-nova-btn" onclick="csNovaConversa()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
