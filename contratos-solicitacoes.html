@@ -817,12 +817,7 @@ async function salvar() {
     return;
   }
 
-  // Validar docs obrigatórios apenas em nova solicitação (não em edição)
-  const _formIdCheck = document.getElementById('form-id').value;
-  if (!_formIdCheck && TIPOS_LOCACAO.includes(tipo) && docsFila.length === 0) {
-    mostrarToast('Para contratos de locação, é necessário anexar ao menos um documento (ex: Proposta Comercial).', 'erro');
-    return;
-  }
+  // Documentos são opcionais — podem ser anexados depois
 
   const btn = document.getElementById('btn-salvar');
   btn.disabled = true;
@@ -908,8 +903,9 @@ function fecharReprovar() {
 async function confirmarReprovar() {
   const motivo = document.getElementById('reprovar-motivo').value.trim();
   if (!motivo) { mostrarToast('Informe o motivo da reprovação.', 'erro'); return; }
+  const idParaReprovar = reprovarIdAtual; // salvar antes de fechar (fechar zera a variável)
   fecharReprovar();
-  await mudarStatus(reprovarIdAtual, 'reprovado', motivo);
+  await mudarStatus(idParaReprovar, 'reprovado', motivo);
 }
 
 async function mudarStatus(id, novoStatus, motivo = null) {
