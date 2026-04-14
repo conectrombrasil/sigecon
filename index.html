@@ -3023,7 +3023,7 @@ async function csCarregarLista() {
                : conv.ultima?.[0]?.tipo === 'imagem'  ? 'Imagem'
                : (conv.ultima?.[0]?.conteudo || 'Sem mensagens');
     const hora = conv.atualizado_em ? new Date(conv.atualizado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '';
-    return '<div class="cs-conv-item" onclick="csAbrirConversa(''+conv.id+'',''+encodeURIComponent(conv.titulo||'Conversa')+'')">'
+    return '<div class="cs-conv-item" onclick="csAbrirConversa(&quot;'+conv.id+'&quot;,&quot;'+encodeURIComponent(conv.titulo||'Conversa')+'&quot;)">'
       + '<div class="cs-conv-avatar" style="background:'+cor+'">'+ini+'</div>'
       + '<div class="cs-conv-info"><div class="cs-conv-nome">'+conv.titulo+(isAdm?'<span class="cs-tag-admin">aberta</span>':'')+'</div>'
       + '<div class="cs-conv-preview">'+prev.substring(0,50)+'</div></div>'
