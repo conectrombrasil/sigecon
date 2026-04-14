@@ -357,7 +357,7 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
       </div>
       <div class="modal-tab" id="tab-chat" onclick="abrirTab('chat')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-        Discussão
+        Mensagens
         <span class="modal-tab-badge" id="chat-badge" style="display:none">0</span>
       </div>
     </div>
@@ -908,11 +908,10 @@ async function mudarStatus(id, novoStatus, motivo = null) {
   if (error) { mostrarToast('Erro ao atualizar status.', 'erro'); return; }
 
   // Mensagem automática no chat
+  const agora = new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
   const textoAuto = novoStatus === 'aprovado'
-    ? '✅ Solicitação aprovada.'
-    : `❌ Solicitação reprovada.
-
-Motivo: ${motivo}`;
+    ? '✅ Solicitação aprovada em ' + agora + '.'
+    : '❌ Solicitação reprovada em ' + agora + '.\n\nMotivo: ' + motivo;
   await _inserirMensagem(id, textoAuto, 'sistema');
 
   mostrarToast(`Solicitação ${novoStatus}!`, 'sucesso');
