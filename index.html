@@ -1184,9 +1184,9 @@ body.light .cs-msg.minha .cs-bubble{background:rgba(46,123,196,0.1);}
 body.light .cs-input-row textarea{background:#F8FAFC;color:var(--text);}
 
 </style>
-<script>(function(){if(localStorage.getItem("sigecon_tema")==="light")document.body.classList.add("light");})()</script>
 </head>
 <body>
+<script>(function(){if(localStorage.getItem("sigecon_tema")==="light")document.body.classList.add("light");})()</script>
 
 <!-- ══ TELA DE LOGIN ══ -->
 <div id="tela-login">
@@ -2974,7 +2974,7 @@ let csAberto=false, csTelAtual='lista', csConvAtual=null, csSubscription=null, c
 async function csInit() {
   if (!sessaoUsuario) return;
   await csAtualizarBadgeTotal();
-  csAssinarNaoLidas();
+  csAssinarNaoLidas(); // chamado apenas após login confirmado
 }
 
 function csToggle() {
@@ -3094,8 +3094,10 @@ function csAtualizarInputStatus() {
   const inputArea = document.getElementById('cs-tela-chat').querySelector('.cs-input-area');
   const btnFin    = document.getElementById('cs-btn-finalizar');
 
-  // Botão finalizar só para admin em conversa aberta
-  if (btnFin) btnFin.style.display = (isAdm && !fechada) ? 'block' : 'none';
+  // Barra de finalizar só para admin em conversa aberta
+  const statusBar = document.getElementById('cs-chat-status-bar');
+  if (statusBar) statusBar.style.display = (isAdm && !fechada) ? 'flex' : 'none';
+  if (btnFin) btnFin.style.display = (isAdm && !fechada) ? 'flex' : 'none';
 
   // Bloquear input se fechada e não é admin
   if (!inputArea) return;
@@ -3340,9 +3342,6 @@ function csCorAvatar(id){
     <div class="cs-lista" id="cs-lista-conversas">
       <div class="cs-vazio">Carregando...</div>
     </div>
-    <div class="cs-btn-finalizar" id="cs-btn-finalizar" onclick="csFinalizarConversa()">
-      &#x2713; Finalizar conversa
-    </div>
     <div class="cs-nova-btn" id="cs-nova-btn" onclick="csNovaConversa()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Nova conversa
@@ -3351,6 +3350,12 @@ function csCorAvatar(id){
 
   <!-- TELA CHAT -->
   <div id="cs-tela-chat" style="display:none;flex-direction:column;flex:1;min-height:0;">
+    <div id="cs-chat-status-bar" style="display:none;padding:6px 14px;background:rgba(224,85,85,0.06);border-bottom:1px solid rgba(224,85,85,0.15);text-align:right;flex-shrink:0;">
+      <button id="cs-btn-finalizar" onclick="csFinalizarConversa()" style="background:transparent;border:none;color:var(--danger);font-size:11px;cursor:pointer;display:flex;align-items:center;gap:5px;margin-left:auto;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Finalizar conversa
+      </button>
+    </div>
     <div class="cs-chat">
       <div class="cs-msgs" id="cs-msgs"></div>
       <div class="cs-input-area">
