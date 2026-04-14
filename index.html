@@ -3407,17 +3407,29 @@ async function csAtualizarBadgeTotal() {
   if (!sessaoUsuario) return;
   try {
     const isAdm = ['admin','gestor'].includes(dadosUsuario?.perfis?.nome);
-    // Buscar todas as mensagens não minhas com suas leituras
-    // O RLS garante que admin vê todas, operador vê só das suas conversas
-    const { data, error } = await sb
+
+    // Passo 1: buscar conversas acessíveis ao usuário
+    let qConv = sb.from('chat_suporte_conversas').select('id');
+    if (!isAdm) qConv = qConv.eq('criado_por', sessaoUsuario.user.id);
+    const { data: convs, error: errConv } = await qConv;
+    if (errConv) { console.warn('Badge conv erro:', errConv.message); return; }
+    const convIds = (convs || []).map(cv => cv.id);
+    if (!convIds.length) { csAtualizarBadge(0); return; }
+
+    // Passo 2: buscar mensagens nessas conversas que não são minhas
+    const { data: msgs, error: errMsg } = await sb
       .from('chat_suporte_mensagens')
-      .select('id, autor_id, leituras:chat_suporte_leituras(usuario_id)')
+      .select('id, leituras:chat_suporte_leituras(usuario_id)')
+      .in('conversa_id', convIds)
       .neq('autor_id', sessaoUsuario.user.id)
       .neq('tipo', 'sistema');
-    if (error) { console.warn('Badge erro:', error.message); return; }
-    const total = (data||[]).filter(m =>
-      !(m.leituras||[]).some(l => l.usuario_id === sessaoUsuario.user.id)
+    if (errMsg) { console.warn('Badge msg erro:', errMsg.message); return; }
+
+    // Passo 3: contar as que eu ainda não li
+    const total = (msgs || []).filter(m =>
+      !(m.leituras || []).some(l => l.usuario_id === sessaoUsuario.user.id)
     ).length;
+
     csAtualizarBadge(total);
   } catch(e) { console.warn('Badge exception:', e); }
 }
