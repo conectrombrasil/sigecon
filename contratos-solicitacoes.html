@@ -183,7 +183,50 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
 @keyframes spin{to{transform:rotate(360deg);}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+@keyframes pulso{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+/* ── TEMA CLARO ──────────────────────────────────────────────── */
+body.light{
+  --navy:#F0F4F8;--navy2:#FFFFFF;--navy3:#E2E8F0;
+  --blue:#2E7BC4;--blue2:#1A5FA8;--blue-glow:rgba(46,123,196,0.15);
+  --text:#1A2533;--text2:#3D5A73;--text3:#7A96AD;
+  --border:rgba(26,51,82,0.12);--border2:rgba(26,51,82,0.25);
+  --success:#1A9E5F;--danger:#C0392B;--warning:#B07D10;
+}
+body.light .topbar{background:rgba(26,51,82,0.97);}
+body.light .topbar-modulo{color:rgba(255,255,255,0.7);}
+body.light .obra-chip{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.8);}
+body.light .obra-chip span{color:#fff;}
+body.light .btn-voltar{border-color:rgba(255,255,255,0.3);color:rgba(255,255,255,0.7);}
+body.light .btn-voltar:hover{border-color:#fff;color:#fff;}
+body.light body::before{background-image:linear-gradient(rgba(26,51,82,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(26,51,82,0.04) 1px,transparent 1px);}
+body.light .form-card{background:#fff;}
+body.light .form-group input,body.light .form-group select,body.light .form-group textarea{background:#F8FAFC;color:var(--text);}
+body.light .modal{background:#fff;}
+body.light .modal-header{background:#fff;}
+body.light .modal-content{background:#fff;}
+body.light .modal-footer{background:#fff;}
+body.light .chat-bubble{background:#F0F4F8;border-color:rgba(26,51,82,0.12);}
+body.light .chat-msg.minha .chat-bubble{background:rgba(46,123,196,0.1);border-color:rgba(46,123,196,0.25);}
+body.light .chat-input-row textarea{background:#F8FAFC;color:var(--text);}
+body.light .chat-btn-icon{background:#F0F4F8;}
+body.light .reprovar-box{background:#fff;}
+body.light .toast{background:#fff;}
+body.light .kanban-col{background:#fff;}
+body.light .kanban-card{background:#F8FAFC;}
+body.light .badge-pendente{background:rgba(224,168,48,0.1);}
+body.light .badge-aprovado{background:rgba(46,204,138,0.1);}
+body.light .badge-reprovado{background:rgba(224,85,85,0.08);}
+body.light .docs-section{background:#F8FAFC;}
+body.light .doc-item{background:#F0F4F8;}
+body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue);}
+/* Toggle btn */
+.theme-toggle{background:transparent;border:1px solid rgba(255,255,255,0.3);border-radius:6px;
+  width:32px;height:32px;cursor:pointer;font-size:15px;display:flex;align-items:center;
+  justify-content:center;transition:all 0.2s;color:#fff;}
+.theme-toggle:hover{background:rgba(255,255,255,0.1);}
 </style>
+<script>(function(){if(localStorage.getItem("sigecon_tema")==="light")document.body.classList.add("light");})()</script>
 </head>
 <body>
 <div class="topbar">
@@ -195,6 +238,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
   <div class="topbar-modulo">Solicitações de Contratos</div>
   <div class="topbar-right">
     <div class="obra-chip">Obra: <span id="obra-nome-display">—</span></div>
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTema()" title="Alternar tema">🌙</button>
     <a class="btn-voltar" href="index.html">← Portal</a>
   </div>
 </div>
@@ -427,6 +471,9 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   await carregarFornecedoresSelect();
   await carregar();
+  // Sincronizar ícone do toggle com tema atual
+  const tBtn = document.getElementById('theme-toggle');
+  if(tBtn) tBtn.textContent = document.body.classList.contains('light') ? '☀️' : '🌙';
 });
 
 // ══════════════════════════════════════════════════════════
@@ -947,9 +994,9 @@ function renderizarMensagens(msgs) {
 }
 
 function renderMensagem(m) {
+  const nl2br = t => (t||'').split('\n').join('<br>');
   if (m.tipo === 'sistema') {
-    return `<div class="chat-bubble-sistema">${m.conteudo.replace(/
-/g,'<br>')}</div>`;
+    return '<div class="chat-bubble-sistema">' + nl2br(m.conteudo) + '</div>';
   }
   const minha = m.autor_id === sessao.user.id;
   const nome  = m.autor?.nome || '?';
@@ -960,30 +1007,26 @@ function renderMensagem(m) {
 
   let conteudo = '';
   if (m.tipo === 'texto') {
-    conteudo = `<div class="chat-bubble-texto">${m.conteudo.replace(/
-/g,'<br>')}</div>`;
+    conteudo = '<div class="chat-bubble-texto">' + nl2br(m.conteudo) + '</div>';
   } else if (m.tipo === 'imagem') {
-    conteudo = `<div class="chat-bubble-midia"><img src="${m.drive_url}" alt="${m.nome_arquivo}" loading="lazy"/></div>`;
-    if (m.conteudo) conteudo += `<div class="chat-bubble-texto" style="margin-top:4px">${m.conteudo}</div>`;
+    conteudo = '<div class="chat-bubble-midia"><img src="' + m.drive_url + '" alt="' + m.nome_arquivo + '" loading="lazy"/></div>';
+    if (m.conteudo) conteudo += '<div class="chat-bubble-texto" style="margin-top:4px">' + nl2br(m.conteudo) + '</div>';
   } else if (m.tipo === 'audio') {
     const token = _gerarTokenGas();
     const url = GAS_DRIVE_URL + '?acao=base64&driveId=' + m.drive_id + '&token=' + token;
-    conteudo = `<div class="chat-bubble-midia"><audio class="chat-audio" controls src="${url}"></audio></div>`;
+    conteudo = '<div class="chat-bubble-midia"><audio class="chat-audio" controls src="' + url + '"></audio></div>';
   } else if (m.tipo === 'arquivo') {
     const token = _gerarTokenGas();
     const url = GAS_DRIVE_URL + '?acao=baixar&driveId=' + m.drive_id + '&token=' + token;
-    conteudo = `<div class="chat-bubble-midia"><a class="chat-bubble-arquivo" href="${url}" target="_blank">📎 ${m.nome_arquivo}</a></div>`;
-    if (m.conteudo) conteudo += `<div class="chat-bubble-texto" style="margin-top:4px">${m.conteudo}</div>`;
+    conteudo = '<div class="chat-bubble-midia"><a class="chat-bubble-arquivo" href="' + url + '" target="_blank">\uD83D\uDCCE ' + m.nome_arquivo + '</a></div>';
+    if (m.conteudo) conteudo += '<div class="chat-bubble-texto" style="margin-top:4px">' + nl2br(m.conteudo) + '</div>';
   }
 
-  return `<div class="chat-msg${minha ? ' minha' : ''}">
-    <div class="chat-avatar" style="background:${cor};color:#fff">${ini}</div>
-    <div class="chat-bubble">
-      ${!minha ? `<div class="chat-bubble-nome">${nome}</div>` : ''}
-      ${conteudo}
-      <div class="chat-bubble-hora">${data} ${hora}</div>
-    </div>
-  </div>`;
+  const nomeHtml = !minha ? '<div class="chat-bubble-nome">' + nome + '</div>' : '';
+  return '<div class="chat-msg' + (minha ? ' minha' : '') + '">' +
+    '<div class="chat-avatar" style="background:' + cor + ';color:#fff">' + ini + '</div>' +
+    '<div class="chat-bubble">' + nomeHtml + conteudo +
+    '<div class="chat-bubble-hora">' + data + ' ' + hora + '</div></div></div>';
 }
 
 function assinarChat(solicitacaoId) {
@@ -1208,6 +1251,21 @@ function fecharModal() {
   document.getElementById('modal').classList.remove('aberto');
   if (chatSubscription) { sb.removeChannel(chatSubscription); chatSubscription = null; }
   if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+}
+
+// ══════════════════════════════════════════════════════════
+// TEMA
+// ══════════════════════════════════════════════════════════
+(function(){
+  const tema = localStorage.getItem('sigecon_tema') || 'dark';
+  if(tema === 'light') document.body.classList.add('light');
+})();
+
+function toggleTema(){
+  const isLight = document.body.classList.toggle('light');
+  localStorage.setItem('sigecon_tema', isLight ? 'light' : 'dark');
+  const btn = document.getElementById('theme-toggle');
+  if(btn) btn.textContent = isLight ? '☀️' : '🌙';
 }
 
 // ══════════════════════════════════════════════════════════
