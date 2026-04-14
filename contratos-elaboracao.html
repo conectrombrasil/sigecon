@@ -421,6 +421,12 @@ async function finalizar(){
   });
   btn.disabled=false;btn.textContent='Salvar contrato';
   if(error){mostrarToast('Erro: '+error.message,'erro');return;}
+  // Atualizar status da solicitação para "em elaboração"
+  if(solId){
+    await sb.from('solicitacoes_contratos')
+      .update({status:'em_elaboracao',editado_por:sessao.user.id})
+      .eq('id',solId);
+  }
   mostrarToast('Contrato elaborado com sucesso!','sucesso');
   fecharWizard();
   await carregar();
