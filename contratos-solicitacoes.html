@@ -35,6 +35,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .kanban-count{background:var(--navy3);border:1px solid var(--border);border-radius:20px;padding:2px 10px;font-size:11px;color:var(--text3);}
 .kanban-card{background:var(--navy3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;}
 .kanban-card:hover{border-color:var(--blue);transform:translateY(-1px);}
+.kanban-card-msg-badge{position:absolute;top:-6px;right:-6px;background:#E05555;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--navy3);}
+.kanban-card{position:relative;}
 .kanban-card-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px;}
 .kanban-card-meta{font-size:11px;color:var(--text3);margin-bottom:8px;}
 .kanban-card-footer{display:flex;align-items:center;justify-content:space-between;}
@@ -452,6 +454,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let sessao = null, obraId = null, perfil = null;
 let solicitacoes = [], solAtual = null;
+let _solNaoLidas = new Set(); // IDs de solicitações com mensagens não lidas
 
 // Fila de documentos pendentes (antes do envio da solicitação)
 let docsFila = []; // [{ id, tipoDoc, tipoLabel, arquivo, nome, status, driveId, driveUrl }]
@@ -491,6 +494,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   await carregarFornecedoresSelect();
   await carregar();
+  assinarKanbanMsgs();
   // Sincronizar ícone do toggle com tema atual
   const tBtn = document.getElementById('theme-toggle');
   if(tBtn) tBtn.textContent = document.body.classList.contains('light') ? '☀️' : '🌙';
@@ -517,7 +521,27 @@ async function carregar() {
   const { data, error } = await q;
   if (error) { mostrarToast('Erro ao carregar solicitações.', 'erro'); return; }
   solicitacoes = data || [];
+  await carregarNaoLidas();
   renderizarKanban();
+}
+
+async function carregarNaoLidas() {
+  try {
+    // Buscar mensagens de todas as solicitações que não são minhas e não li
+    const ids = solicitacoes.map(s => s.id);
+    if (!ids.length) { _solNaoLidas = new Set(); return; }
+    const { data } = await sb
+      .from('solicitacoes_mensagens')
+      .select('solicitacao_id, leituras:solicitacoes_mensagens_leituras(usuario_id)')
+      .in('solicitacao_id', ids)
+      .neq('autor_id', sessao.user.id)
+      .neq('tipo', 'sistema');
+    _solNaoLidas = new Set(
+      (data || [])
+        .filter(m => !(m.leituras || []).some(l => l.usuario_id === sessao.user.id))
+        .map(m => m.solicitacao_id)
+    );
+  } catch(e) { _solNaoLidas = new Set(); }
 }
 
 function renderizarKanban() {
@@ -538,6 +562,7 @@ function coluna(titulo, status, lista, badgeClass) {
     </div>
     ${lista.length ? lista.map(s => `
       <div class="kanban-card" onclick="abrirDetalhe('${s.id}')">
+        ${_solNaoLidas.has(s.id) ? '<div class="kanban-card-msg-badge" title="Mensagens não lidas">!</div>' : ''}
         <div class="kanban-card-title">${s.fornecedores?.razao_social || '—'}</div>
         <div class="kanban-card-meta">${tipoLabel(s.tipo)} • ${s.data_inicio ? formatarData(s.data_inicio) : '-'}</div>
         <div class="kanban-card-footer">
@@ -576,6 +601,9 @@ function abrirTab(tab) {
 async function abrirDetalhe(id) {
   solAtual = solicitacoes.find(s => s.id === id);
   if (!solAtual) return;
+  // Remover badge do card ao abrir (mensagens serão marcadas como lidas ao ver o chat)
+  _solNaoLidas.delete(id);
+  renderizarKanban();
   const s = solAtual;
 
   // Resetar tabs
@@ -1072,6 +1100,19 @@ function renderMensagem(m) {
     '<div class="chat-avatar" style="background:' + cor + ';color:#fff">' + ini + '</div>' +
     '<div class="chat-bubble">' + nomeHtml + conteudo +
     '<div class="chat-bubble-hora">' + data + ' ' + hora + tickHtml + '</div></div></div>';
+}
+
+function assinarKanbanMsgs() {
+  sb.channel('kanban-msgs')
+    .on('postgres_changes', {
+      event: 'INSERT', schema: 'public', table: 'solicitacoes_mensagens',
+    }, async (payload) => {
+      // Se a mensagem não é minha, adicionar badge no card
+      if (payload.new.autor_id !== sessao.user.id) {
+        _solNaoLidas.add(payload.new.solicitacao_id);
+        renderizarKanban();
+      }
+    }).subscribe();
 }
 
 function assinarChat(solicitacaoId) {
