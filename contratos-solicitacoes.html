@@ -1164,10 +1164,29 @@ async function _carregarImgChat(imgId, driveId) {
     const resp  = await fetch(GAS_DRIVE_URL + '?acao=base64&driveId=' + driveId + '&token=' + token);
     const data  = await resp.json();
     if (!data.sucesso || !data.base64) throw new Error('Falha ao obter imagem');
-    imgEl.src = 'data:' + data.mimeType + ';base64,' + data.base64;
+    // Converter base64 em Blob URL (data: URLs são bloqueadas pelo Chrome para navegação)
+    const byteStr = atob(data.base64);
+    const bytes   = new Uint8Array(byteStr.length);
+    for (let i = 0; i < byteStr.length; i++) bytes[i] = byteStr.charCodeAt(i);
+    const blob    = new Blob([bytes], { type: data.mimeType });
+    const blobUrl = URL.createObjectURL(blob);
+
+    imgEl.src = blobUrl;
     imgEl.style.minHeight = '';
     imgEl.style.background = '';
-    imgEl.onclick = () => window.open(imgEl.src, '_blank');
+    // Clicar abre em nova aba; também adiciona botão de download
+    imgEl.onclick = () => window.open(blobUrl, '_blank');
+    imgEl.title   = 'Clique para ampliar';
+    imgEl.style.cursor = 'zoom-in';
+
+    // Botão de download logo abaixo da imagem
+    const btnDl = document.createElement('a');
+    btnDl.href     = blobUrl;
+    btnDl.download = imgEl.alt || 'imagem';
+    btnDl.textContent = '⬇ Baixar imagem';
+    btnDl.style.cssText = 'display:inline-block;margin-top:6px;font-size:11px;color:var(--blue2);text-decoration:none;';
+    imgEl.parentNode.appendChild(btnDl);
+
     if (loadEl) loadEl.remove();
   } catch (err) {
     if (imgEl) imgEl.style.display = 'none';
