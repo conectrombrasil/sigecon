@@ -1135,8 +1135,10 @@ async function enviarMensagem() {
     }
     document.getElementById('chat-texto').value = '';
     document.getElementById('chat-texto').style.height = 'auto';
-    // Recarregar chat manualmente (garante exibição mesmo sem Realtime ativo)
+    // Pausar Realtime antes de recarregar para evitar duplicata
+    if (chatSubscription) { sb.removeChannel(chatSubscription); chatSubscription = null; }
     await carregarChat(solAtual.id);
+    assinarChat(solAtual.id);
   } catch (err) {
     console.error('enviarMensagem erro:', err);
     mostrarToast('Erro ao enviar mensagem: ' + err.message, 'erro');
