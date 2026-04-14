@@ -532,7 +532,7 @@ function tipoLabel(t) {
 // ══════════════════════════════════════════════════════════
 // MODAL DETALHE
 // ══════════════════════════════════════════════════════════
-let chatSubscription = null;
+let chatSubscription = null, leiturasSubscription = null;
 let chatAnexoPendente = null; // { arquivo, nome, mimeType, tamanho }
 
 let tabAtiva = 'detalhes';
@@ -1052,7 +1052,8 @@ function renderMensagem(m) {
 
 function assinarChat(solicitacaoId) {
   // Canal de leituras — atualiza ticks quando outro usuário lê
-  sb.channel('leituras-' + solicitacaoId)
+  if (leiturasSubscription) { sb.removeChannel(leiturasSubscription); leiturasSubscription = null; }
+  leiturasSubscription = sb.channel('leituras-' + solicitacaoId)
     .on('postgres_changes', {
       event: 'INSERT', schema: 'public',
       table: 'solicitacoes_mensagens_leituras',
@@ -1137,6 +1138,7 @@ async function enviarMensagem() {
     document.getElementById('chat-texto').style.height = 'auto';
     // Pausar Realtime antes de recarregar para evitar duplicata
     if (chatSubscription) { sb.removeChannel(chatSubscription); chatSubscription = null; }
+    if (leiturasSubscription) { sb.removeChannel(leiturasSubscription); leiturasSubscription = null; }
     await carregarChat(solAtual.id);
     assinarChat(solAtual.id);
   } catch (err) {
@@ -1308,6 +1310,7 @@ function fecharForm() {
 function fecharModal() {
   document.getElementById('modal').classList.remove('aberto');
   if (chatSubscription) { sb.removeChannel(chatSubscription); chatSubscription = null; }
+  if (leiturasSubscription) { sb.removeChannel(leiturasSubscription); leiturasSubscription = null; }
 }
 
 // ══════════════════════════════════════════════════════════
