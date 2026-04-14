@@ -1028,23 +1028,24 @@ function renderMensagem(m) {
   }
 
   const nomeHtml = '<div class="chat-bubble-nome">' + (minha ? 'Você' : nome) + '</div>';
+
+  // Ticks: só nas minhas mensagens
+  let tickHtml = '';
+  if (minha) {
+    const leituras = (m.leituras || []).filter(l => l.usuario_id !== sessao.user.id);
+    let tickClass, tickSymbol;
+    if (leituras.length > 0) {
+      tickClass = 'visualizado'; tickSymbol = '✓✓';
+    } else if (m._entregue) {
+      tickClass = 'entregue'; tickSymbol = '✓✓';
+    } else {
+      tickClass = 'enviado'; tickSymbol = '✓';
+    }
+    tickHtml = '<span class="chat-tick ' + tickClass + '">' + tickSymbol + '</span>';
+  }
+
   return '<div class="chat-msg' + (minha ? ' minha' : '') + '">' +
     '<div class="chat-avatar" style="background:' + cor + ';color:#fff">' + ini + '</div>' +
-    // Ticks: só nas minhas mensagens
-    let tickHtml = '';
-    if (minha) {
-      const leituras = (m.leituras || []).filter(l => l.usuario_id !== sessao.user.id);
-      let tickClass, tickSymbol;
-      if (leituras.length > 0) {
-        tickClass = 'visualizado'; tickSymbol = '✓✓';
-      } else if (m._entregue) {
-        tickClass = 'entregue'; tickSymbol = '✓✓';
-      } else {
-        tickClass = 'enviado'; tickSymbol = '✓';
-      }
-      tickHtml = '<span class="chat-tick ' + tickClass + '">' + tickSymbol + '</span>';
-    }
-
     '<div class="chat-bubble">' + nomeHtml + conteudo +
     '<div class="chat-bubble-hora">' + data + ' ' + hora + tickHtml + '</div></div></div>';
 }
