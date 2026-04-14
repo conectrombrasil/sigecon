@@ -1631,6 +1631,7 @@ let sessaoUsuario = null;
 let dadosUsuario  = null;
 let obraAtiva     = null;
 let _cacheObras = [];
+let _cacheObrasPortal = []; // obras visíveis ao usuário logado
 let _cacheUsuarios = [];
 
 // ══════════════════════════════════════════
@@ -1867,7 +1868,8 @@ async function mostrarObras() {
     </div>
   `).join('');
 
-  // Renderiza obras também na sidebar
+  // Salvar obras visíveis para uso na sidebar
+  _cacheObrasPortal = obras;
   renderizarSidebarObras(obras);
 }
 
@@ -1878,7 +1880,7 @@ function selecionarObra(obra) {
   document.getElementById('obra-ativa-local').textContent =
     [obra.cidade, obra.estado].filter(Boolean).join(' — ') || 'Localização não informada';
   // Atualizar destaque da obra ativa na sidebar
-  renderizarSidebarObras(_cacheObras || []);
+  renderizarSidebarObras(_cacheObrasPortal || []);
   mostrarModulos();
 }
 
@@ -1888,7 +1890,7 @@ function voltarParaObras() {
   document.getElementById('tela-modulos').style.display = 'none';
   mostrarObras();
   // Sidebar volta a mostrar obras
-  renderizarSidebarObras(_cacheObras || []);
+  renderizarSidebarObras(_cacheObrasPortal || []);
 }
 
 async function mostrarModulos() {
@@ -2586,7 +2588,7 @@ function renderizarSidebarObras(obras) {
     const ativa   = (obraAtiva && obraAtiva.id === o.id) ? 'ativa' : '';
     const dotCls  = (o.status !== 'ativa') ? 'inativa' : '';
     const nome    = (o.nome || '—').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    itensHtml += '<div class="sb-obra-item ' + ativa + '" onclick="selecionarObraSidebar(' + JSON.stringify(o.id) + ')" title="' + nome + '">'
+    itensHtml += '<div class="sb-obra-item ' + ativa + '" onclick="selecionarObraSidebar(\'' + o.id + '\')" title="' + nome + '">'
       + '<div class="sb-obra-dot ' + dotCls + '"></div>'
       + '<span>' + nome + '</span>'
       + '</div>';
@@ -2602,10 +2604,10 @@ function renderizarSidebarObras(obras) {
 }
 
 function selecionarObraSidebar(obraId) {
-  const obra = (_cacheObras || []).find(function(o) { return o.id === obraId; });
+  const obra = (_cacheObrasPortal || []).find(function(o) { return o.id === obraId; });
   if (!obra) return;
   selecionarObra(obra);
-  renderizarSidebarObras(_cacheObras || []);
+  renderizarSidebarObras(_cacheObrasPortal || []);
 }
 
 function renderizarSidebar() {
