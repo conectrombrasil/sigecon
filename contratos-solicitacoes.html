@@ -28,7 +28,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .page-subtitle{font-size:12px;color:var(--text3);margin-top:2px;}
 .btn-novo{padding:9px 18px;background:var(--blue);border:none;border-radius:8px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px;}
 .btn-novo:hover{background:var(--blue2);}
-.kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px;}
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:8px;}
 .kanban-col{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:16px;}
 .kanban-col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
 .kanban-col-title{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text2);}
@@ -44,6 +44,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .badge-pendente{background:rgba(224,168,48,0.12);color:var(--warning);border:1px solid rgba(224,168,48,0.25);}
 .badge-aprovado{background:rgba(46,204,138,0.12);color:var(--success);border:1px solid rgba(46,204,138,0.25);}
 .badge-reprovado{background:rgba(224,85,85,0.12);color:var(--danger);border:1px solid rgba(224,85,85,0.25);}
+.badge-em_elaboracao{background:rgba(46,123,196,0.12);color:var(--blue2);border:1px solid rgba(46,123,196,0.25);}
 .form-card{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:24px;}
 .form-card h3{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600;letter-spacing:1px;color:var(--text);margin-bottom:18px;}
 .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:14px;}
@@ -545,13 +546,15 @@ async function carregarNaoLidas() {
 }
 
 function renderizarKanban() {
-  const pendentes  = solicitacoes.filter(s => s.status === 'pendente');
-  const aprovadas  = solicitacoes.filter(s => s.status === 'aprovado');
-  const reprovadas = solicitacoes.filter(s => s.status === 'reprovado');
+  const pendentes      = solicitacoes.filter(s => s.status === 'pendente');
+  const aprovadas      = solicitacoes.filter(s => s.status === 'aprovado');
+  const reprovadas     = solicitacoes.filter(s => s.status === 'reprovado');
+  const emElaboracao   = solicitacoes.filter(s => s.status === 'em_elaboracao');
   document.getElementById('kanban').innerHTML =
-    coluna('Aguardando aprovação', 'pendente',  pendentes,  'badge-pendente') +
-    coluna('Aprovadas',            'aprovado',  aprovadas,  'badge-aprovado') +
-    coluna('Reprovadas',           'reprovado', reprovadas, 'badge-reprovado');
+    coluna('Aguardando aprovação', 'pendente',      pendentes,    'badge-pendente') +
+    coluna('Aprovadas',            'aprovado',      aprovadas,    'badge-aprovado') +
+    coluna('Em elaboração',        'em_elaboracao', emElaboracao, 'badge-em_elaboracao') +
+    coluna('Reprovadas',           'reprovado',     reprovadas,   'badge-reprovado');
 }
 
 function coluna(titulo, status, lista, badgeClass) {
@@ -612,7 +615,7 @@ async function abrirDetalhe(id) {
   document.getElementById('modal-titulo').textContent = `Solicitação — ${tipoLabel(s.tipo)}`;
 
   // ── Campos ──
-  const statusBadge = { pendente: '⏳ Pendente', aprovado: '✅ Aprovado', reprovado: '❌ Reprovado' }[s.status] || s.status;
+  const statusBadge = { pendente: '⏳ Pendente', aprovado: '✅ Aprovado', reprovado: '❌ Reprovado', em_elaboracao: '📝 Em elaboração' }[s.status] || s.status;
   const campos = [
     ['Fornecedor',           s.fornecedores?.razao_social],
     ['Tipo',                 tipoLabel(s.tipo)],
@@ -641,7 +644,7 @@ async function abrirDetalhe(id) {
   // ── Ações ──
   const actions = document.getElementById('modal-actions');
   actions.innerHTML = '<button class="btn-cancelar" onclick="fecharModal()">Fechar</button>';
-  const podeEditar = s.status !== 'aprovado' && s.criado_por === sessao.user.id;
+  const podeEditar = !['aprovado','em_elaboracao'].includes(s.status) && s.criado_por === sessao.user.id;
   if (podeEditar) {
     actions.innerHTML += `<button class="btn-cancelar" style="border-color:var(--blue);color:var(--blue2)" onclick="editarSolicitacao('${s.id}')">✏️ Editar</button>`;
   }
