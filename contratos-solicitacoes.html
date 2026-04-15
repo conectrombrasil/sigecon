@@ -95,6 +95,22 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .resp-cell:last-child{color:var(--blue2);font-weight:500;text-align:center;white-space:nowrap;}
 .resp-header .resp-cell{background:var(--navy3);font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text3);}
 .docs-section{margin-top:8px;display:none;}
+.assinantes-section{margin-top:8px;padding-top:14px;border-top:1px solid var(--border);}
+.assinante-card{background:var(--navy);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;}
+.assinante-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.assinante-card-titulo{font-size:12px;font-weight:600;color:var(--text2);letter-spacing:0.5px;text-transform:uppercase;}
+.assinante-card-remove{background:rgba(224,85,85,0.1);border:1px solid rgba(224,85,85,0.2);border-radius:6px;width:26px;height:26px;cursor:pointer;color:var(--danger);font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.assinante-card-remove:hover{background:rgba(224,85,85,0.2);}
+.assinante-fonte{display:flex;gap:6px;margin-bottom:12px;}
+.assinante-fonte-btn{flex:1;padding:6px 10px;background:var(--navy2);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--text3);cursor:pointer;transition:all 0.2s;text-align:center;}
+.assinante-fonte-btn.ativo{background:rgba(46,123,196,0.12);border-color:var(--blue);color:var(--blue2);}
+.assinante-select-wrap{display:none;margin-bottom:10px;}
+.assinante-select-wrap.visivel{display:block;}
+.procuracao-wrap{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:var(--text2);}
+.procuracao-wrap input[type=checkbox]{accent-color:var(--blue);width:14px;height:14px;cursor:pointer;}
+.proc-desc{display:none;margin-top:8px;}
+.btn-add-assinante{padding:8px 14px;background:rgba(46,123,196,0.1);border:1px dashed var(--border2);border-radius:8px;color:var(--blue2);font-size:12px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px;justify-content:center;flex:1;}
+.btn-add-assinante:hover{background:rgba(46,123,196,0.18);}
 .docs-section.visivel{display:block;}
 .docs-section-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);}
 .docs-section-icon{width:32px;height:32px;background:rgba(46,123,196,0.12);border:1px solid var(--border2);border-radius:8px;display:flex;align-items:center;justify-content:center;}
@@ -342,7 +358,7 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
       </div>
       <div class="form-group">
         <label>Fornecedor *</label>
-        <select id="f-fornecedor"><option value="">Carregando...</option></select>
+        <select id="f-fornecedor" onchange="onFornecedorChange()"><option value="">Carregando...</option></select>
       </div>
       <div class="form-group">
         <label>Valor estimado (R$)</label>
@@ -419,6 +435,28 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
       </div>
     </div>
     <!-- FIM DOCUMENTOS -->
+
+    <!-- SIGNATÁRIOS E TESTEMUNHAS -->
+    <div class="assinantes-section">
+      <div class="docs-section-header">
+        <div class="docs-section-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <div>
+          <div class="docs-section-title">Signat&#225;rios e Testemunhas</div>
+          <div class="docs-section-sub">Pessoas que assinar&#227;o o contrato</div>
+        </div>
+      </div>
+      <div id="assinantes-lista"></div>
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button type="button" class="btn-add-assinante" onclick="adicionarAssinante('signatario')">
+          + Signat&#225;rio
+        </button>
+        <button type="button" class="btn-add-assinante" style="background:rgba(46,204,138,0.08);border-color:rgba(46,204,138,0.3);color:var(--success);" onclick="adicionarAssinante('testemunha')">
+          + Testemunha
+        </button>
+      </div>
+    </div>
 
     <div class="form-actions" style="margin-top:20px">
       <button class="btn-cancelar" onclick="fecharForm()">Cancelar</button>
@@ -1293,6 +1331,12 @@ function preencherCamposEspecificos(dados) {
 // ══════════════════════════════════════════════════════════
 // MUDANÇA DE TIPO — mostra/oculta seção docs e campos específicos
 // ══════════════════════════════════════════════════════════
+function onFornecedorChange() {
+  var fid = document.getElementById('f-fornecedor').value;
+  carregarContatosFornecedor(fid);
+  document.getElementById('assinantes-lista').innerHTML = '';
+}
+
 function onTipoChange(dadosExistentes) {
   const tipo = document.getElementById('f-tipo').value;
   const sec  = document.getElementById('docs-section');
@@ -1474,7 +1518,8 @@ async function salvar() {
     const isEdicao = !!formId;
 
     // 1. Criar ou atualizar solicitação no Supabase
-    const camposEsp = coletarCamposEspecificos();
+    const camposEsp  = coletarCamposEspecificos();
+    const assinantes = coletarAssinantes();
     let sol, error;
     if (isEdicao) {
       ({ data: sol, error } = await sb.from('solicitacoes_contratos').update({
@@ -1485,6 +1530,7 @@ async function salvar() {
         data_fim:           document.getElementById('f-fim').value    || null,
         objeto,
         campos_especificos: camposEsp,
+        assinantes:         assinantes,
         status:             'pendente',
         editado_por:        sessao.user.id,
         editado_em:         new Date().toISOString(),
@@ -1499,6 +1545,7 @@ async function salvar() {
         data_fim:           document.getElementById('f-fim').value    || null,
         objeto,
         campos_especificos: camposEsp,
+        assinantes:         assinantes,
         status:             'pendente',
         criado_por:         sessao.user.id,
       }).select().single());
@@ -1592,6 +1639,8 @@ function editarSolicitacao(id) {
   document.getElementById('form-titulo').textContent = 'Editar solicitação';
   document.getElementById('btn-salvar').textContent  = 'Salvar alterações';
   onTipoChange(s.campos_especificos);
+  if (s.fornecedor_id) carregarContatosFornecedor(s.fornecedor_id);
+  setTimeout(function() { preencherAssinantes(s.assinantes); }, 150);
   document.getElementById('form-card').style.display = 'block';
   document.getElementById('form-card').scrollIntoView({ behavior: 'smooth' });
 }
@@ -2011,6 +2060,164 @@ function _corAvatar(userId) {
 // ══════════════════════════════════════════════════════════
 // FORM HELPERS
 // ══════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+// SIGNATÁRIOS E TESTEMUNHAS
+// ══════════════════════════════════════════════════════════
+let _contatosFornecedor = [];
+
+async function carregarContatosFornecedor(fornecedorId) {
+  if (!fornecedorId) { _contatosFornecedor = []; return; }
+  try {
+    const [{ data: socios }, { data: contatos }] = await Promise.all([
+      sb.from('fornecedor_socios').select('id,nome,cpf_cnpj,email,telefone').eq('fornecedor_id', fornecedorId),
+      sb.from('fornecedor_contatos').select('id,nome,cargo,email,telefone').eq('fornecedor_id', fornecedorId),
+    ]);
+    _contatosFornecedor = [
+      ...(socios   || []).map(s  => ({ ...s,  origem: 'socio',   label: s.nome  + ' (S\u00f3cio)' })),
+      ...(contatos || []).map(ct => ({ ...ct, origem: 'contato', label: ct.nome + (ct.cargo ? ' \u2014 ' + ct.cargo : '') })),
+    ];
+  } catch(e) { _contatosFornecedor = []; }
+}
+
+function _buildOptsSelect() {
+  if (!_contatosFornecedor.length) return '<option value="">Nenhum contato cadastrado</option>';
+  var opts = '<option value="">Selecione um contato...</option>';
+  _contatosFornecedor.forEach(function(p) {
+    opts += '<option value="' + p.id + '" data-origem="' + p.origem + '">' + p.label + '</option>';
+  });
+  return opts;
+}
+
+function adicionarAssinante(papel) {
+  var lista  = document.getElementById('assinantes-lista');
+  var idx    = lista.children.length;
+  var iSgn   = lista.querySelectorAll('[data-papel="signatario"]').length + (papel === 'signatario' ? 1 : 0);
+  var iTst   = lista.querySelectorAll('[data-papel="testemunha"]').length + (papel === 'testemunha' ? 1 : 0);
+  var titulo = papel === 'signatario' ? '\u270D\uFE0F Signat\u00e1rio ' + iSgn : '\uD83D\uDC41 Testemunha ' + iTst;
+
+  var card = document.createElement('div');
+  card.className   = 'assinante-card';
+  card.dataset.papel = papel;
+
+  var html = '';
+  html += '<div class="assinante-card-header">';
+  html += '<span class="assinante-card-titulo">' + titulo + '</span>';
+  html += '<button type="button" class="assinante-card-remove" data-action="remover-assinante">&#xD7;</button>';
+  html += '</div>';
+  html += '<div class="assinante-fonte">';
+  html += '<button type="button" class="assinante-fonte-btn ativo" data-fonte="cadastro">Do cadastro</button>';
+  html += '<button type="button" class="assinante-fonte-btn" data-fonte="manual">Manual</button>';
+  html += '</div>';
+  html += '<div class="assinante-select-wrap visivel">';
+  html += '<div class="form-group" style="margin-bottom:8px"><label>Selecionar do fornecedor</label>';
+  html += '<select class="asgn-select">' + _buildOptsSelect() + '</select></div>';
+  html += '</div>';
+  html += '<div class="form-row" style="margin-bottom:8px">';
+  html += '<div class="form-group"><label>Nome completo *</label><input type="text" class="asgn-nome" placeholder="Nome completo"/></div>';
+  html += '<div class="form-group"><label>CPF</label><input type="text" class="asgn-cpf" placeholder="000.000.000-00"/></div>';
+  html += '</div>';
+  html += '<div class="form-row" style="margin-bottom:8px">';
+  html += '<div class="form-group"><label>E-mail</label><input type="email" class="asgn-email" placeholder="email@empresa.com"/></div>';
+  html += '<div class="form-group"><label>Telefone</label><input type="text" class="asgn-telefone" placeholder="(00) 9 0000-0000"/></div>';
+  html += '</div>';
+  html += '<div class="procuracao-wrap">';
+  html += '<input type="checkbox" class="asgn-proc-chk" id="proc-' + idx + '"/>';
+  html += '<label for="proc-' + idx + '">Assina por procura\u00e7\u00e3o</label>';
+  html += '</div>';
+  html += '<div class="form-group proc-desc" style="display:none;margin-top:8px">';
+  html += '<label>N\u00ba / Descri\u00e7\u00e3o da Procura\u00e7\u00e3o</label>';
+  html += '<input type="text" class="asgn-proc-num" placeholder="N\u00ba da escritura p\u00fablica ou instrumento particular"/>';
+  html += '</div>';
+
+  card.innerHTML = html;
+
+  // Eventos via addEventListener (sem onclick inline)
+  card.querySelector('[data-action="remover-assinante"]').addEventListener('click', function() {
+    card.remove();
+    _reindexarAssinantes();
+  });
+  card.querySelectorAll('.assinante-fonte-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() { _fonteAssinante(btn, btn.dataset.fonte, card); });
+  });
+  card.querySelector('.asgn-select').addEventListener('change', function() {
+    _preencherDoSelect(this, card);
+  });
+  card.querySelector('.asgn-proc-chk').addEventListener('change', function() {
+    card.querySelector('.proc-desc').style.display = this.checked ? 'block' : 'none';
+  });
+
+  lista.appendChild(card);
+}
+
+function _fonteAssinante(btn, fonte, card) {
+  card.querySelectorAll('.assinante-fonte-btn').forEach(function(b) { b.classList.remove('ativo'); });
+  btn.classList.add('ativo');
+  card.querySelector('.assinante-select-wrap').classList.toggle('visivel', fonte === 'cadastro');
+  if (fonte === 'manual') {
+    card.querySelector('.asgn-nome').value     = '';
+    card.querySelector('.asgn-cpf').value      = '';
+    card.querySelector('.asgn-email').value    = '';
+    card.querySelector('.asgn-telefone').value = '';
+  }
+}
+
+function _preencherDoSelect(sel, card) {
+  var id = sel.value;
+  if (!id) return;
+  var pessoa = _contatosFornecedor.find(function(p) { return String(p.id) === String(id); });
+  if (!pessoa) return;
+  card.querySelector('.asgn-nome').value     = pessoa.nome      || '';
+  card.querySelector('.asgn-cpf').value      = pessoa.cpf_cnpj  || '';
+  card.querySelector('.asgn-email').value    = pessoa.email     || '';
+  card.querySelector('.asgn-telefone').value = pessoa.telefone  || '';
+}
+
+function _reindexarAssinantes() {
+  var iS = 1, iT = 1;
+  document.querySelectorAll('.assinante-card').forEach(function(card) {
+    var t = card.querySelector('.assinante-card-titulo');
+    if (card.dataset.papel === 'signatario') t.textContent = '\u270D\uFE0F Signat\u00e1rio ' + iS++;
+    else t.textContent = '\uD83D\uDC41 Testemunha ' + iT++;
+  });
+}
+
+function coletarAssinantes() {
+  var lista = [];
+  document.querySelectorAll('.assinante-card').forEach(function(card) {
+    var nome = (card.querySelector('.asgn-nome') || {}).value;
+    if (!nome || !nome.trim()) return;
+    lista.push({
+      papel:          card.dataset.papel,
+      nome:           nome.trim(),
+      cpf:            (card.querySelector('.asgn-cpf')      || {}).value || null,
+      email:          (card.querySelector('.asgn-email')    || {}).value || null,
+      telefone:       (card.querySelector('.asgn-telefone') || {}).value || null,
+      procuracao:     (card.querySelector('.asgn-proc-chk') || {}).checked || false,
+      procuracao_num: (card.querySelector('.asgn-proc-num') || {}).value  || null,
+    });
+  });
+  return lista.length ? lista : null;
+}
+
+function preencherAssinantes(lista) {
+  if (!lista || !lista.length) return;
+  var el = document.getElementById('assinantes-lista');
+  el.innerHTML = '';
+  lista.forEach(function(a) {
+    adicionarAssinante(a.papel);
+    var card = el.lastElementChild;
+    card.querySelector('.asgn-nome').value     = a.nome      || '';
+    card.querySelector('.asgn-cpf').value      = a.cpf       || '';
+    card.querySelector('.asgn-email').value    = a.email     || '';
+    card.querySelector('.asgn-telefone').value = a.telefone  || '';
+    if (a.procuracao) {
+      card.querySelector('.asgn-proc-chk').checked = true;
+      card.querySelector('.proc-desc').style.display = 'block';
+      if (a.procuracao_num) card.querySelector('.asgn-proc-num').value = a.procuracao_num;
+    }
+  });
+}
+
 function abrirForm() {
   document.getElementById('form-id').value         = '';
   document.getElementById('f-tipo').value          = '';
@@ -2023,6 +2230,7 @@ function abrirForm() {
   docsFila = [];
   arquivoSelecionado = null;
   document.getElementById('docs-lista').innerHTML  = '';
+  document.getElementById('assinantes-lista').innerHTML = '';
   document.getElementById('doc-nome-display').value = '';
   document.getElementById('btn-add-doc').disabled  = true;
   document.getElementById('form-card').style.display = 'block';
