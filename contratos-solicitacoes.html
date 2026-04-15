@@ -66,6 +66,28 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .campos-especificos{margin-top:4px;padding-top:14px;border-top:1px solid var(--border);display:none;}
 .campos-especificos.visivel{display:block;}
 .campos-especificos-titulo{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.equip-lista{display:flex;flex-direction:column;gap:12px;margin-bottom:12px;}
+.equip-card{background:var(--navy);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative;}
+.equip-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.equip-card-titulo{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;color:var(--blue2);letter-spacing:1px;}
+.equip-card-remove{background:rgba(224,85,85,0.1);border:1px solid rgba(224,85,85,0.2);border-radius:6px;width:26px;height:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;color:var(--danger);font-size:14px;}
+.equip-card-remove:hover{background:rgba(224,85,85,0.2);}
+.equip-custos-titulo{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin:10px 0 6px;}
+.equip-custos-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center;margin-bottom:4px;}
+.equip-custos-grid input,.equip-custos-grid select{background:var(--navy2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:12px;font-family:'Inter',sans-serif;outline:none;transition:border-color 0.2s;width:100%;}
+.equip-custos-grid input:focus,.equip-custos-grid select:focus{border-color:var(--blue);}
+.equip-custos-header{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text3);padding:0 2px;}
+.btn-add-equip{padding:8px 14px;background:rgba(46,123,196,0.1);border:1px dashed var(--border2);border-radius:8px;color:var(--blue2);font-size:12px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px;width:100%;justify-content:center;margin-bottom:14px;}
+.btn-add-equip:hover{background:rgba(46,123,196,0.18);}
+.btn-add-custo{background:transparent;border:none;color:var(--blue2);font-size:11px;cursor:pointer;padding:4px 0;display:flex;align-items:center;gap:4px;margin-top:4px;}
+.btn-add-custo:hover{color:var(--blue);}
+.btn-rm-custo{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0 4px;line-height:1;transition:color 0.2s;}
+.btn-rm-custo:hover{color:var(--danger);}
+.resp-editavel{display:grid;grid-template-columns:1fr auto auto;gap:6px;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);}
+.resp-editavel input,.resp-editavel select{background:var(--navy2);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-size:12px;font-family:'Inter',sans-serif;outline:none;width:100%;}
+.resp-editavel input:focus,.resp-editavel select:focus{border-color:var(--blue);}
+.btn-add-resp{background:transparent;border:none;color:var(--blue2);font-size:11px;cursor:pointer;padding:6px 0;display:flex;align-items:center;gap:4px;margin-top:6px;}
+.btn-add-resp:hover{color:var(--blue);}
 .responsabilidades-grid{display:grid;grid-template-columns:1fr auto;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-top:8px;}
 .resp-row{display:contents;}
 .resp-row:nth-child(odd) .resp-cell{background:rgba(46,123,196,0.04);}
@@ -988,8 +1010,25 @@ const SOL_CATEGORIAS = {
 const TIPOS_LOCACAO = ['locacao_maquinas', 'locacao_veiculos', 'locacao_equipamentos',
                         'locacao_imovel', 'obras_engenharia', 'fornecimento'];
 
+// ══════════════════════════════════════════════════════════
+// TIPOS COM MÚLTIPLOS EQUIPAMENTOS
+// ══════════════════════════════════════════════════════════
+const TIPOS_MULTI_EQUIP = ['locacao_maquinas', 'locacao_equipamentos'];
+
+const CUSTOS_FIXOS = [
+  { id:'mensalidade',     label:'Mensalidade' },
+  { id:'diaria',          label:'Diária' },
+  { id:'horario',         label:'Valor Horário' },
+  { id:'mobilizacao',     label:'Mobilização' },
+  { id:'desmobilizacao',  label:'Desmobilização' },
+  { id:'hora_extra',      label:'Hora Extra' },
+  { id:'km_extra',        label:'Km Extra' },
+];
+
+const OPCOES_RESP = ['Contratante','Contratado','Ambos','Contratante/Contratado','A definir'];
+
 // ── Renderizar campos específicos ───────────────────────────────
-function renderCamposEspecificos(tipo) {
+function renderCamposEspecificos(tipo, dadosExistentes) {
   const cat  = SOL_CATEGORIAS[tipo];
   const sec  = document.getElementById('campos-especificos');
   const body = document.getElementById('campos-especificos-body');
@@ -998,68 +1037,263 @@ function renderCamposEspecificos(tipo) {
   tit.textContent = cat.nome + ' — Informações específicas';
   sec.classList.add('visivel');
 
-  // Campos dinâmicos
-  let html = '<div class="form-row" style="margin-bottom:14px">';
-  let count = 0;
+  if (TIPOS_MULTI_EQUIP.includes(tipo)) {
+    _renderMultiEquip(body, cat, tipo, dadosExistentes);
+  } else {
+    _renderCamposSimples(body, cat, dadosExistentes);
+  }
+}
+
+// ── Render para tipos com múltiplos equipamentos ────────────────
+function _renderMultiEquip(body, cat, tipo, dadosExistentes) {
+  const equipamentos = (dadosExistentes && dadosExistentes.equipamentos) || [_novoEquipamento()];
+  const resps = (dadosExistentes && dadosExistentes.responsabilidades) || cat.responsabilidades.map(r => ({...r}));
+
+  body.innerHTML = '';
+
+  // Lista de equipamentos
+  const listaEl = document.createElement('div');
+  listaEl.id = 'equip-lista';
+  listaEl.className = 'equip-lista';
+  body.appendChild(listaEl);
+
+  equipamentos.forEach((eq, idx) => _adicionarCardEquipamento(listaEl, cat, idx, eq));
+
+  // Botão adicionar equipamento
+  const btnAdd = document.createElement('button');
+  btnAdd.type = 'button';
+  btnAdd.className = 'btn-add-equip';
+  btnAdd.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Adicionar equipamento / veículo';
+  btnAdd.onclick = () => {
+    const lista = document.getElementById('equip-lista');
+    const idx = lista.children.length;
+    _adicionarCardEquipamento(lista, cat, idx, _novoEquipamento());
+    _reindexarCards();
+  };
+  body.appendChild(btnAdd);
+
+  // Matriz de responsabilidades editável
+  _renderMatrizResp(body, resps);
+}
+
+function _novoEquipamento() {
+  return { campos: {}, custos: CUSTOS_FIXOS.map(c => ({ id: c.id, label: c.label, valor: '', periodo: 'Mensal' })) };
+}
+
+function _adicionarCardEquipamento(lista, cat, idx, eq) {
+  const card = document.createElement('div');
+  card.className = 'equip-card';
+  card.dataset.idx = idx;
+
+  // Header
+  let html = '<div class="equip-card-header">'
+    + '<span class="equip-card-titulo">Equipamento ' + (idx + 1) + '</span>'
+    + '<button type="button" class="equip-card-remove" onclick="_removerEquipamento(this)" title="Remover">×</button>'
+    + '</div>';
+
+  // Campos de identificação
+  html += '<div class="form-row" style="margin-bottom:10px">';
   cat.campos.forEach(campo => {
-    if (campo.tipo === 'endereco') return; // pular endereço por ora
-    count++;
-    if (count > 1 && count % 3 === 1) html += '</div><div class="form-row" style="margin-bottom:14px">';
+    if (campo.tipo === 'endereco') return;
+    const val = (eq.campos && eq.campos[campo.id]) || '';
     html += '<div class="form-group"><label>' + campo.label + '</label>';
     if (campo.tipo === 'select') {
-      html += '<select id="ce-' + campo.id + '" class="ce-campo">';
+      html += '<select class="equip-campo" data-campo="' + campo.id + '">';
       html += '<option value="">Selecione...</option>';
-      campo.opts.forEach(o => { html += '<option value="' + o + '">' + o + '</option>'; });
+      campo.opts.forEach(o => html += '<option value="' + o + '"' + (val===o?' selected':'') + '>' + o + '</option>');
       html += '</select>';
-    } else if (campo.tipo === 'textarea') {
-      html += '<textarea id="ce-' + campo.id + '" class="ce-campo" placeholder="' + (campo.placeholder||'') + '" rows="2"></textarea>';
     } else {
-      html += '<input type="' + (campo.tipo||'text') + '" id="ce-' + campo.id + '" class="ce-campo" placeholder="' + (campo.placeholder||'') + '"/>';
+      html += '<input type="' + (campo.tipo||'text') + '" class="equip-campo" data-campo="' + campo.id + '" value="' + val + '" placeholder="' + (campo.placeholder||'') + '"/>';
     }
     html += '</div>';
   });
   html += '</div>';
 
-  // Tabela de responsabilidades
-  if (cat.responsabilidades && cat.responsabilidades.length) {
-    html += '<div style="margin-top:8px;margin-bottom:4px"><label>Responsabilidades previstas</label></div>';
-    html += '<div class="responsabilidades-grid">';
-    html += '<div class="resp-row resp-header"><div class="resp-cell">Item</div><div class="resp-cell">Responsável</div></div>';
-    cat.responsabilidades.forEach(r => {
-      html += '<div class="resp-row"><div class="resp-cell">' + r.item + '</div><div class="resp-cell">' + r.resp + '</div></div>';
-    });
-    html += '</div>';
-  }
+  // Tabela de custos
+  html += '<div class="equip-custos-titulo">💰 Composição de Custos</div>';
+  html += '<div class="equip-custos-grid"><span class="equip-custos-header">Item</span><span class="equip-custos-header">Valor (R$)</span><span></span></div>';
 
-  body.innerHTML = html;
+  const custos = eq.custos || CUSTOS_FIXOS.map(c => ({ id: c.id, label: c.label, valor: '', periodo: 'Mensal' }));
+  custos.forEach((custo, ci) => {
+    const isExtra = !CUSTOS_FIXOS.find(f => f.id === custo.id);
+    html += '<div class="equip-custos-grid equip-custo-row">'
+      + '<input class="equip-custo-label" value="' + custo.label + '" placeholder="Item de custo"' + (isExtra ? '' : ' readonly') + '/>'
+      + '<input type="number" class="equip-custo-valor" value="' + (custo.valor||'') + '" placeholder="0,00" step="0.01" min="0"/>'
+      + '<button type="button" class="btn-rm-custo" onclick="_removerCusto(this)" title="Remover">×</button>'
+      + '</div>';
+  });
+
+  html += '<button type="button" class="btn-add-custo" onclick="_adicionarCusto(this)">'
+    + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+    + ' Adicionar item de custo</button>';
+
+  card.innerHTML = html;
+  lista.appendChild(card);
 }
 
-// ── Coletar valores dos campos específicos ──────────────────────
-function coletarCamposEspecificos() {
-  const campos = document.querySelectorAll('.ce-campo');
-  const dados = {};
-  campos.forEach(el => {
-    const id = el.id.replace('ce-', '');
-    if (el.value) dados[id] = el.value;
+function _removerEquipamento(btn) {
+  const card = btn.closest('.equip-card');
+  const lista = document.getElementById('equip-lista');
+  if (lista.children.length <= 1) { mostrarToast('É necessário ao menos um equipamento.', 'erro'); return; }
+  card.remove();
+  _reindexarCards();
+}
+
+function _reindexarCards() {
+  document.querySelectorAll('.equip-card').forEach((card, i) => {
+    card.dataset.idx = i;
+    const tit = card.querySelector('.equip-card-titulo');
+    if (tit) tit.textContent = 'Equipamento ' + (i + 1);
   });
-  return Object.keys(dados).length ? dados : null;
+}
+
+function _adicionarCusto(btn) {
+  const card = btn.closest('.equip-card');
+  const before = btn;
+  const row = document.createElement('div');
+  row.className = 'equip-custos-grid equip-custo-row';
+  row.innerHTML = '<input class="equip-custo-label" placeholder="Descrição do custo"/>'
+    + '<input type="number" class="equip-custo-valor" placeholder="0,00" step="0.01" min="0"/>'
+    + '<button type="button" class="btn-rm-custo" onclick="_removerCusto(this)">×</button>';
+  card.insertBefore(row, before);
+}
+
+function _removerCusto(btn) {
+  btn.closest('.equip-custo-row').remove();
+}
+
+// ── Matriz de responsabilidades editável ────────────────────────
+function _renderMatrizResp(body, resps) {
+  const wrap = document.createElement('div');
+  wrap.id = 'resp-matriz';
+  wrap.style.marginTop = '14px';
+
+  let html = '<div style="margin-bottom:6px"><label>Matriz de Responsabilidades</label></div>'
+    + '<div style="display:grid;grid-template-columns:1fr auto auto;gap:6px;align-items:center;padding:4px 2px;margin-bottom:4px">'
+    + '<span class="equip-custos-header">Item / Atividade</span>'
+    + '<span class="equip-custos-header">Responsável</span>'
+    + '<span></span></div>';
+
+  resps.forEach(r => {
+    html += '<div class="resp-editavel">'
+      + '<input class="resp-item" value="' + r.item + '" placeholder="Atividade / responsabilidade"/>'
+      + '<select class="resp-resp">'
+      + OPCOES_RESP.map(o => '<option value="'+o+'"'+(r.resp===o?' selected':'')+'>'+o+'</option>').join('')
+      + '</select>'
+      + '<button type="button" class="btn-rm-custo" onclick="_removerResp(this)" title="Remover">×</button>'
+      + '</div>';
+  });
+
+  html += '<button type="button" class="btn-add-resp" onclick="_adicionarResp(this)">'
+    + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+    + ' Adicionar responsabilidade</button>';
+
+  wrap.innerHTML = html;
+  body.appendChild(wrap);
+}
+
+function _adicionarResp(btn) {
+  const wrap = document.getElementById('resp-matriz');
+  const row = document.createElement('div');
+  row.className = 'resp-editavel';
+  row.innerHTML = '<input class="resp-item" placeholder="Atividade / responsabilidade"/>'
+    + '<select class="resp-resp">'
+    + OPCOES_RESP.map(o => '<option value="'+o+'">'+o+'</option>').join('')
+    + '</select>'
+    + '<button type="button" class="btn-rm-custo" onclick="_removerResp(this)">×</button>';
+  wrap.insertBefore(row, btn);
+}
+
+function _removerResp(btn) {
+  btn.closest('.resp-editavel').remove();
+}
+
+// ── Render simples (outros tipos) ────────────────────────────────
+function _renderCamposSimples(body, cat, dadosExistentes) {
+  let html = '<div class="form-row" style="margin-bottom:14px">';
+  let count = 0;
+  cat.campos.forEach(campo => {
+    if (campo.tipo === 'endereco') return;
+    count++;
+    if (count > 1 && count % 3 === 1) html += '</div><div class="form-row" style="margin-bottom:14px">';
+    const val = (dadosExistentes && dadosExistentes[campo.id]) || '';
+    html += '<div class="form-group"><label>' + campo.label + '</label>';
+    if (campo.tipo === 'select') {
+      html += '<select id="ce-' + campo.id + '" class="ce-campo">';
+      html += '<option value="">Selecione...</option>';
+      campo.opts.forEach(o => html += '<option value="' + o + '"' + (val===o?' selected':'') + '>' + o + '</option>');
+      html += '</select>';
+    } else if (campo.tipo === 'textarea') {
+      html += '<textarea id="ce-' + campo.id + '" class="ce-campo" placeholder="' + (campo.placeholder||'') + '" rows="2">' + val + '</textarea>';
+    } else {
+      html += '<input type="' + (campo.tipo||'text') + '" id="ce-' + campo.id + '" class="ce-campo" value="' + val + '" placeholder="' + (campo.placeholder||'') + '"/>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // Matriz de responsabilidades editável
+  const resps = (dadosExistentes && dadosExistentes.responsabilidades) || cat.responsabilidades.map(r => ({...r}));
+  body.innerHTML = html;
+  _renderMatrizResp(body, resps);
+}
+
+// ── Coletar campos específicos ───────────────────────────────────
+function coletarCamposEspecificos() {
+  const tipo = document.getElementById('f-tipo').value;
+  if (!tipo) return null;
+
+  if (TIPOS_MULTI_EQUIP.includes(tipo)) {
+    // Coletar equipamentos
+    const equipamentos = [];
+    document.querySelectorAll('.equip-card').forEach(card => {
+      const campos = {};
+      card.querySelectorAll('.equip-campo').forEach(el => { if (el.value) campos[el.dataset.campo] = el.value; });
+      const custos = [];
+      card.querySelectorAll('.equip-custo-row').forEach(row => {
+        const label = row.querySelector('.equip-custo-label')?.value?.trim();
+        const valor = row.querySelector('.equip-custo-valor')?.value?.trim();
+        if (label) custos.push({ label, valor: valor || '' });
+      });
+      equipamentos.push({ campos, custos });
+    });
+    // Coletar responsabilidades
+    const responsabilidades = _coletarMatrizResp();
+    return { equipamentos, responsabilidades };
+  } else {
+    // Campos simples
+    const dados = {};
+    document.querySelectorAll('.ce-campo').forEach(el => {
+      const id = el.id.replace('ce-', '');
+      if (el.value) dados[id] = el.value;
+    });
+    dados.responsabilidades = _coletarMatrizResp();
+    return Object.keys(dados).length ? dados : null;
+  }
+}
+
+function _coletarMatrizResp() {
+  const resps = [];
+  document.querySelectorAll('.resp-editavel').forEach(row => {
+    const item = row.querySelector('.resp-item')?.value?.trim();
+    const resp = row.querySelector('.resp-resp')?.value;
+    if (item) resps.push({ item, resp });
+  });
+  return resps;
 }
 
 // ── Preencher campos específicos (edição) ────────────────────────
 function preencherCamposEspecificos(dados) {
   if (!dados) return;
-  setTimeout(() => {
-    Object.entries(dados).forEach(([id, val]) => {
-      const el = document.getElementById('ce-' + id);
-      if (el) el.value = val;
-    });
-  }, 50);
+  const tipo = document.getElementById('f-tipo').value;
+  // renderCamposEspecificos já é chamado por onTipoChange — passar dados para preencher
+  setTimeout(() => renderCamposEspecificos(tipo, dados), 50);
 }
 
 // ══════════════════════════════════════════════════════════
 // MUDANÇA DE TIPO — mostra/oculta seção docs e campos específicos
 // ══════════════════════════════════════════════════════════
-function onTipoChange() {
+function onTipoChange(dadosExistentes) {
   const tipo = document.getElementById('f-tipo').value;
   const sec  = document.getElementById('docs-section');
   if (TIPOS_LOCACAO.includes(tipo)) {
@@ -1069,7 +1303,7 @@ function onTipoChange() {
     docsFila = [];
     renderizarFilaDocs();
   }
-  renderCamposEspecificos(tipo);
+  renderCamposEspecificos(tipo, dadosExistentes || null);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1357,8 +1591,7 @@ function editarSolicitacao(id) {
   document.getElementById('f-objeto').value        = s.objeto      || '';
   document.getElementById('form-titulo').textContent = 'Editar solicitação';
   document.getElementById('btn-salvar').textContent  = 'Salvar alterações';
-  onTipoChange();
-  preencherCamposEspecificos(s.campos_especificos);
+  onTipoChange(s.campos_especificos);
   document.getElementById('form-card').style.display = 'block';
   document.getElementById('form-card').scrollIntoView({ behavior: 'smooth' });
 }
