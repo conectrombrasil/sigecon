@@ -63,6 +63,15 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .btn-cancelar:hover{border-color:var(--text2);color:var(--text);}
 
 /* ── SEÇÃO DOCUMENTOS ─────────────────────────────────────── */
+.campos-especificos{margin-top:4px;padding-top:14px;border-top:1px solid var(--border);display:none;}
+.campos-especificos.visivel{display:block;}
+.campos-especificos-titulo{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.responsabilidades-grid{display:grid;grid-template-columns:1fr auto;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-top:8px;}
+.resp-row{display:contents;}
+.resp-row:nth-child(odd) .resp-cell{background:rgba(46,123,196,0.04);}
+.resp-cell{padding:7px 12px;font-size:12px;border-bottom:1px solid var(--border);}
+.resp-cell:last-child{color:var(--blue2);font-weight:500;text-align:center;white-space:nowrap;}
+.resp-header .resp-cell{background:var(--navy3);font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text3);}
 .docs-section{margin-top:8px;display:none;}
 .docs-section.visivel{display:block;}
 .docs-section-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);}
@@ -280,9 +289,33 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
         <label>Tipo de contrato *</label>
         <select id="f-tipo" onchange="onTipoChange()">
           <option value="">Selecione...</option>
-          <option value="locacao_maquinas">Locação de Máquinas</option>
-          <option value="locacao_veiculos">Locação de Veículos</option>
-          <option value="locacao_equipamentos">Locação de Equipamentos</option>
+          <optgroup label="🏗️ Locação">
+            <option value="locacao_imovel">Locação de Imóveis e Terrenos</option>
+            <option value="locacao_maquinas">Locação de Máquinas e Veículos</option>
+            <option value="locacao_equipamentos">Locação de Equipamentos</option>
+          </optgroup>
+          <optgroup label="🔨 Obras e Serviços">
+            <option value="obras_engenharia">Obras e Serviços de Engenharia</option>
+            <option value="saude">Serviços de Saúde</option>
+            <option value="suporte_operacao">Suporte à Operação</option>
+            <option value="corporativo">Serviços Corporativos</option>
+          </optgroup>
+          <optgroup label="💻 Tecnologia">
+            <option value="ti">TI, Software e Serviços Digitais</option>
+          </optgroup>
+          <optgroup label="📦 Fornecimento">
+            <option value="fornecimento">Fornecimento de Produtos</option>
+            <option value="compra_venda">Compra e Venda</option>
+            <option value="logistica">Logística e Transporte</option>
+          </optgroup>
+          <optgroup label="👷 Pessoas">
+            <option value="trabalhista">Trabalhista e RH</option>
+          </optgroup>
+          <optgroup label="🤝 Outros">
+            <option value="parcerias">Parcerias e Acordos</option>
+            <option value="financeiro_seg">Financeiro e Seguros</option>
+            <option value="propriedade_nat">Uso de Propriedade e Recursos Naturais</option>
+          </optgroup>
         </select>
       </div>
       <div class="form-group">
@@ -309,6 +342,15 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
         <label>Justificativa / Objeto *</label>
         <textarea id="f-objeto" placeholder="Descreva o objeto do contrato e a justificativa da solicitação..."></textarea>
       </div>
+    </div>
+
+    <!-- CAMPOS ESPECÍFICOS POR TIPO -->
+    <div class="campos-especificos" id="campos-especificos">
+      <div class="campos-especificos-titulo">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="campos-especificos-titulo-text">Informações específicas</span>
+      </div>
+      <div id="campos-especificos-body"></div>
     </div>
 
     <!-- SEÇÃO DE DOCUMENTOS (condicional para locações) -->
@@ -463,7 +505,6 @@ let docsFila = []; // [{ id, tipoDoc, tipoLabel, arquivo, nome, status, driveId,
 // ══════════════════════════════════════════════════════════
 // TIPOS DE LOCAÇÃO — exigem documentos
 // ══════════════════════════════════════════════════════════
-const TIPOS_LOCACAO = ['locacao_maquinas', 'locacao_veiculos', 'locacao_equipamentos'];
 
 const TIPO_DOC_LABELS = {
   proposta_comercial:  'Proposta Comercial',
@@ -577,7 +618,8 @@ function coluna(titulo, status, lista, badgeClass) {
 }
 
 function tipoLabel(t) {
-  return { locacao_maquinas: 'Locação Máquinas', locacao_veiculos: 'Locação Veículos', locacao_equipamentos: 'Locação Equipamentos' }[t] || t;
+  if (SOL_CATEGORIAS && SOL_CATEGORIAS[t]) return SOL_CATEGORIAS[t].nome;
+  return { locacao_maquinas:'Locação Máquinas', locacao_veiculos:'Locação Veículos', locacao_equipamentos:'Locação Equipamentos' }[t] || t;
 }
 
 // ══════════════════════════════════════════════════════════
@@ -625,6 +667,14 @@ async function abrirDetalhe(id) {
     ['Fim previsto',         s.data_fim    ? formatarData(s.data_fim)    : '—'],
     ['Objeto/Justificativa', s.objeto],
   ];
+  // Campos específicos da categoria
+  if (s.campos_especificos && SOL_CATEGORIAS[s.tipo]) {
+    const cat = SOL_CATEGORIAS[s.tipo];
+    cat.campos.forEach(campo => {
+      const val = s.campos_especificos[campo.id];
+      if (val) campos.push([campo.label, val]);
+    });
+  }
   document.getElementById('modal-body').innerHTML = campos
     .filter(([, v]) => v)
     .map(([l, v]) => `<div class="modal-row"><span class="modal-label">${l}</span><span class="modal-value">${v}</span></div>`)
@@ -712,7 +762,302 @@ async function carregarDocsModal(solicitacaoId) {
 }
 
 // ══════════════════════════════════════════════════════════
-// MUDANÇA DE TIPO — mostra/oculta seção docs
+// CATEGORIAS — campos específicos por tipo
+// ══════════════════════════════════════════════════════════
+const SOL_CATEGORIAS = {
+  locacao_imovel: {
+    nome: 'Locação de Imóveis e Terrenos',
+    campos: [
+      { id:'caucao_meses',    label:'Caução (meses)',           tipo:'number' },
+      { id:'caucao_valor',    label:'Valor do Caução (R$)',      tipo:'number' },
+      { id:'dia_pgto_aluguel',label:'Dia vencimento aluguel',    tipo:'number', placeholder:'Ex: 5, 10, 15' },
+      { id:'vigencia_indet',  label:'Vigência Indeterminada?',   tipo:'select', opts:['Não','Sim'] },
+      { id:'mobiliado',       label:'Imóvel Mobiliado?',         tipo:'select', opts:['Não','Sim','Parcialmente'] },
+      { id:'matricula',       label:'Nº Matrícula do Imóvel',    tipo:'text' },
+      { id:'licenca_amb',     label:'Licença Ambiental',         tipo:'text', placeholder:'Nº da LO, se aplicável' },
+    ],
+    responsabilidades: [
+      { item:'Pagamento do Aluguel',     resp:'Contratante' },
+      { item:'Conservação do Imóvel',    resp:'Contratante' },
+      { item:'IPTU e Taxas',             resp:'Contratante' },
+      { item:'Manutenção Estrutural',    resp:'Contratado' },
+      { item:'Vistoria de Entrada/Saída',resp:'Ambos' },
+    ],
+  },
+  locacao_maquinas: {
+    nome: 'Locação de Máquinas e Veículos',
+    campos: [
+      { id:'placa_frota',      label:'Placa / Identificação / Frota', tipo:'text' },
+      { id:'horimetro',        label:'Horímetro / Km inicial',        tipo:'text' },
+      { id:'operador',         label:'Operador incluso?',             tipo:'select', opts:['Não','Sim — pelo locador','Sim — pelo locatário'] },
+      { id:'vistoria_entrega', label:'Vistoria na entrega?',          tipo:'select', opts:['Sim','Não'] },
+    ],
+    responsabilidades: [
+      { item:'Manutenção Preventiva',  resp:'Contratado' },
+      { item:'Combustível',            resp:'Contratante' },
+      { item:'Operação do Equipamento',resp:'Contratante' },
+      { item:'Seguro do Equipamento',  resp:'Contratado' },
+      { item:'Danos por Mau Uso',      resp:'Contratante' },
+    ],
+  },
+  locacao_equipamentos: {
+    nome: 'Locação de Equipamentos',
+    campos: [
+      { id:'identificacao', label:'Identificação do Equipamento', tipo:'text' },
+      { id:'vistoria_eq',   label:'Vistoria na entrega?',         tipo:'select', opts:['Sim','Não'] },
+      { id:'instalacao',    label:'Instalação inclusa?',          tipo:'select', opts:['Sim','Não'] },
+    ],
+    responsabilidades: [
+      { item:'Manutenção Preventiva', resp:'Contratado' },
+      { item:'Manutenção Corretiva',  resp:'Contratado' },
+      { item:'Operação',              resp:'Contratante' },
+      { item:'Seguro do Equipamento', resp:'Contratado' },
+    ],
+  },
+  obras_engenharia: {
+    nome: 'Obras e Serviços de Engenharia',
+    campos: [
+      { id:'crea_art',      label:'CREA / ART Nº',          tipo:'text' },
+      { id:'resp_tecnico',  label:'Responsável Técnico',     tipo:'text' },
+      { id:'regime_exec',   label:'Regime de Execução',      tipo:'select', opts:['Empreitada por preço global','Empreitada por preço unitário','Tarefa','Administração'] },
+      { id:'prazo_garantia',label:'Prazo de Garantia (meses)',tipo:'number' },
+      { id:'seguro_obra',   label:'Seguro de Obra',          tipo:'select', opts:['Sim','Não','A definir'] },
+    ],
+    responsabilidades: [
+      { item:'Execução da Obra',        resp:'Contratada' },
+      { item:'ART / Responsabilidade Técnica', resp:'Contratada' },
+      { item:'EPI dos Trabalhadores',   resp:'Contratada' },
+      { item:'Fiscalização',            resp:'Contratante' },
+      { item:'Fornecimento do Projeto', resp:'Contratante' },
+      { item:'Limpeza do Canteiro',     resp:'Contratada' },
+    ],
+  },
+  saude: {
+    nome: 'Serviços de Saúde',
+    campos: [
+      { id:'crm_alvara', label:'CRM / Alvará Sanitário', tipo:'text' },
+      { id:'cobertura',  label:'Cobertura',              tipo:'text', placeholder:'Ex: Consultas, exames, internação' },
+      { id:'nr7_pcmso',  label:'NR-7 / PCMSO incluso?', tipo:'select', opts:['Sim','Não','N/A'] },
+    ],
+    responsabilidades: [
+      { item:'Prestação dos Serviços',     resp:'Contratada' },
+      { item:'Habilitação Profissional',   resp:'Contratada' },
+      { item:'Agendamento / Logística',    resp:'Contratante' },
+      { item:'Prontuários / Laudos',       resp:'Contratada' },
+    ],
+  },
+  suporte_operacao: {
+    nome: 'Suporte à Operação',
+    campos: [
+      { id:'frequencia',       label:'Frequência do Serviço',  tipo:'select', opts:['Diária','Semanal','Quinzenal','Mensal','Pontual'] },
+      { id:'licenca_residuos', label:'Licença para Resíduos',  tipo:'text', placeholder:'Nº da licença, se aplicável' },
+    ],
+    responsabilidades: [
+      { item:'Execução dos Serviços',   resp:'Contratada' },
+      { item:'EPI dos Funcionários',    resp:'Contratada' },
+      { item:'Descarte de Resíduos',    resp:'Contratada' },
+      { item:'Supervisão',              resp:'Contratante' },
+    ],
+  },
+  corporativo: {
+    nome: 'Serviços Corporativos',
+    campos: [
+      { id:'entregaveis', label:'Entregáveis esperados', tipo:'textarea' },
+      { id:'sigilo',      label:'Cláusula de sigilo?',   tipo:'select', opts:['Sim','Não'] },
+    ],
+    responsabilidades: [
+      { item:'Execução dos Serviços',  resp:'Contratada' },
+      { item:'Entrega dos Relatórios', resp:'Contratada' },
+      { item:'Sigilo das Informações', resp:'Ambos' },
+      { item:'Fornecimento de Dados',  resp:'Contratante' },
+    ],
+  },
+  ti: {
+    nome: 'TI, Software e Serviços Digitais',
+    campos: [
+      { id:'licencas',    label:'Nº de Licenças / Usuários',      tipo:'number' },
+      { id:'sla',         label:'SLA (horas para atendimento)',    tipo:'text' },
+      { id:'dados_lgpd',  label:'Tratamento de dados (LGPD)?',    tipo:'select', opts:['Sim — DPA será anexado','Não há dados pessoais'] },
+    ],
+    responsabilidades: [
+      { item:'Desenvolvimento / Implantação', resp:'Contratada' },
+      { item:'Suporte Técnico',               resp:'Contratada' },
+      { item:'Backup dos Dados',              resp:'Contratada' },
+      { item:'Segurança da Informação',       resp:'Ambos' },
+      { item:'Infraestrutura de Acesso',      resp:'Contratante' },
+    ],
+  },
+  propriedade_nat: {
+    nome: 'Uso de Propriedade e Recursos Naturais',
+    campos: [
+      { id:'outorga',       label:'Outorga / Autorização',   tipo:'text' },
+      { id:'volume_limit',  label:'Volume / Limite autorizado',tipo:'text' },
+      { id:'lic_amb_nat',   label:'Licença Ambiental',        tipo:'text' },
+    ],
+    responsabilidades: [
+      { item:'Manutenção da Área',      resp:'Contratante' },
+      { item:'Licenças Ambientais',     resp:'Contratante' },
+      { item:'Monitoramento Ambiental', resp:'Contratante' },
+      { item:'Acesso à Área',           resp:'Contratado' },
+    ],
+  },
+  fornecimento: {
+    nome: 'Fornecimento de Produtos',
+    campos: [
+      { id:'local_entrega',  label:'Local de entrega',         tipo:'text' },
+      { id:'prazo_entrega',  label:'Prazo de entrega (dias)',   tipo:'number' },
+      { id:'garantia_prod',  label:'Garantia do produto',       tipo:'text' },
+    ],
+    responsabilidades: [
+      { item:'Entrega dos Produtos', resp:'Contratada' },
+      { item:'Qualidade',            resp:'Contratada' },
+      { item:'Transporte',           resp:'Contratada' },
+      { item:'Descarga / Recebimento',resp:'Contratante' },
+      { item:'Armazenamento',        resp:'Contratante' },
+    ],
+  },
+  compra_venda: {
+    nome: 'Compra e Venda',
+    campos: [
+      { id:'forma_pgto', label:'Forma de Pagamento', tipo:'select', opts:['À vista','Parcelado','Financiado','Permuta'] },
+      { id:'registro',   label:'Registro em cartório?',tipo:'select', opts:['Sim','Não','A definir'] },
+      { id:'vistoria_cv',label:'Vistoria prévia?',    tipo:'select', opts:['Sim','Não'] },
+    ],
+    responsabilidades: [
+      { item:'Transferência de Propriedade', resp:'Vendedor' },
+      { item:'Pagamento',                    resp:'Comprador' },
+      { item:'Custas de Cartório',           resp:'Comprador' },
+      { item:'Entrega do Bem',               resp:'Vendedor' },
+    ],
+  },
+  trabalhista: {
+    nome: 'Trabalhista e RH',
+    campos: [
+      { id:'nr_aplicaveis', label:'NRs aplicáveis', tipo:'text', placeholder:'Ex: NR-6, NR-7, NR-18' },
+    ],
+    responsabilidades: [
+      { item:'EPI dos Trabalhadores',     resp:'Contratada' },
+      { item:'Treinamentos de Segurança', resp:'Contratada' },
+      { item:'Encargos Trabalhistas',     resp:'Contratada' },
+      { item:'Supervisão das Atividades', resp:'Contratante' },
+      { item:'PCMSO / ASO',               resp:'Contratada' },
+    ],
+  },
+  parcerias: {
+    nome: 'Parcerias e Acordos',
+    campos: [
+      { id:'prazo_nda',   label:'Prazo de vigência do sigilo', tipo:'text' },
+      { id:'abrangencia', label:'Abrangência geográfica',       tipo:'text' },
+    ],
+    responsabilidades: [
+      { item:'Sigilo das Informações', resp:'Ambos' },
+      { item:'Cumprimento das Metas',  resp:'Ambos' },
+      { item:'Prestação de Contas',    resp:'Ambos' },
+    ],
+  },
+  financeiro_seg: {
+    nome: 'Financeiro e Seguros',
+    campos: [
+      { id:'taxa_juros',    label:'Taxa de Juros (% a.m.)',  tipo:'number', placeholder:'Se aplicável' },
+      { id:'garantia_tipo', label:'Tipo de Garantia',         tipo:'text' },
+      { id:'valor_garantia',label:'Valor da Garantia (R$)',   tipo:'number' },
+      { id:'dia_pgto_fin',  label:'Dia de Pagamento',         tipo:'number', placeholder:'Ex: 5, 10, 15' },
+    ],
+    responsabilidades: [
+      { item:'Pagamento das Parcelas', resp:'Contratante' },
+      { item:'Cobertura do Seguro',    resp:'Contratada' },
+      { item:'Comunicação de Sinistros',resp:'Contratante' },
+    ],
+  },
+  logistica: {
+    nome: 'Logística e Transporte',
+    campos: [
+      { id:'tipo_carga', label:'Tipo de Carga', tipo:'text' },
+      { id:'antt',       label:'ANTT / RNTRC',  tipo:'text' },
+    ],
+    responsabilidades: [
+      { item:'Transporte / Frete',     resp:'Contratada' },
+      { item:'Seguro da Carga',        resp:'Contratada' },
+      { item:'Embalagem',              resp:'Contratante' },
+      { item:'Desembaraço Aduaneiro',  resp:'Contratante' },
+    ],
+  },
+};
+
+// Tipos que exigem documentos (propostas)
+const TIPOS_LOCACAO = ['locacao_maquinas', 'locacao_veiculos', 'locacao_equipamentos',
+                        'locacao_imovel', 'obras_engenharia', 'fornecimento'];
+
+// ── Renderizar campos específicos ───────────────────────────────
+function renderCamposEspecificos(tipo) {
+  const cat  = SOL_CATEGORIAS[tipo];
+  const sec  = document.getElementById('campos-especificos');
+  const body = document.getElementById('campos-especificos-body');
+  const tit  = document.getElementById('campos-especificos-titulo-text');
+  if (!cat) { sec.classList.remove('visivel'); return; }
+  tit.textContent = cat.nome + ' — Informações específicas';
+  sec.classList.add('visivel');
+
+  // Campos dinâmicos
+  let html = '<div class="form-row" style="margin-bottom:14px">';
+  let count = 0;
+  cat.campos.forEach(campo => {
+    if (campo.tipo === 'endereco') return; // pular endereço por ora
+    count++;
+    if (count > 1 && count % 3 === 1) html += '</div><div class="form-row" style="margin-bottom:14px">';
+    html += '<div class="form-group"><label>' + campo.label + '</label>';
+    if (campo.tipo === 'select') {
+      html += '<select id="ce-' + campo.id + '" class="ce-campo">';
+      html += '<option value="">Selecione...</option>';
+      campo.opts.forEach(o => { html += '<option value="' + o + '">' + o + '</option>'; });
+      html += '</select>';
+    } else if (campo.tipo === 'textarea') {
+      html += '<textarea id="ce-' + campo.id + '" class="ce-campo" placeholder="' + (campo.placeholder||'') + '" rows="2"></textarea>';
+    } else {
+      html += '<input type="' + (campo.tipo||'text') + '" id="ce-' + campo.id + '" class="ce-campo" placeholder="' + (campo.placeholder||'') + '"/>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // Tabela de responsabilidades
+  if (cat.responsabilidades && cat.responsabilidades.length) {
+    html += '<div style="margin-top:8px;margin-bottom:4px"><label>Responsabilidades previstas</label></div>';
+    html += '<div class="responsabilidades-grid">';
+    html += '<div class="resp-row resp-header"><div class="resp-cell">Item</div><div class="resp-cell">Responsável</div></div>';
+    cat.responsabilidades.forEach(r => {
+      html += '<div class="resp-row"><div class="resp-cell">' + r.item + '</div><div class="resp-cell">' + r.resp + '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  body.innerHTML = html;
+}
+
+// ── Coletar valores dos campos específicos ──────────────────────
+function coletarCamposEspecificos() {
+  const campos = document.querySelectorAll('.ce-campo');
+  const dados = {};
+  campos.forEach(el => {
+    const id = el.id.replace('ce-', '');
+    if (el.value) dados[id] = el.value;
+  });
+  return Object.keys(dados).length ? dados : null;
+}
+
+// ── Preencher campos específicos (edição) ────────────────────────
+function preencherCamposEspecificos(dados) {
+  if (!dados) return;
+  setTimeout(() => {
+    Object.entries(dados).forEach(([id, val]) => {
+      const el = document.getElementById('ce-' + id);
+      if (el) el.value = val;
+    });
+  }, 50);
+}
+
+// ══════════════════════════════════════════════════════════
+// MUDANÇA DE TIPO — mostra/oculta seção docs e campos específicos
 // ══════════════════════════════════════════════════════════
 function onTipoChange() {
   const tipo = document.getElementById('f-tipo').value;
@@ -724,6 +1069,7 @@ function onTipoChange() {
     docsFila = [];
     renderizarFilaDocs();
   }
+  renderCamposEspecificos(tipo);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -894,32 +1240,35 @@ async function salvar() {
     const isEdicao = !!formId;
 
     // 1. Criar ou atualizar solicitação no Supabase
+    const camposEsp = coletarCamposEspecificos();
     let sol, error;
     if (isEdicao) {
       ({ data: sol, error } = await sb.from('solicitacoes_contratos').update({
         tipo,
-        fornecedor_id:  fornecedor,
-        valor_estimado: document.getElementById('f-valor').value || null,
-        data_inicio:    document.getElementById('f-inicio').value || null,
-        data_fim:       document.getElementById('f-fim').value    || null,
+        fornecedor_id:      fornecedor,
+        valor_estimado:     document.getElementById('f-valor').value || null,
+        data_inicio:        document.getElementById('f-inicio').value || null,
+        data_fim:           document.getElementById('f-fim').value    || null,
         objeto,
-        status:         'pendente', // volta para análise após edição
-        editado_por:    sessao.user.id,
+        campos_especificos: camposEsp,
+        status:             'pendente',
+        editado_por:        sessao.user.id,
+        editado_em:         new Date().toISOString(),
       }).eq('id', formId).select().single());
     } else {
       ({ data: sol, error } = await sb.from('solicitacoes_contratos').insert({
         tipo,
-        fornecedor_id:  fornecedor,
-        obra_id:        obraId,
-        valor_estimado: document.getElementById('f-valor').value || null,
-        data_inicio:    document.getElementById('f-inicio').value || null,
-        data_fim:       document.getElementById('f-fim').value    || null,
+        fornecedor_id:      fornecedor,
+        obra_id:            obraId,
+        valor_estimado:     document.getElementById('f-valor').value || null,
+        data_inicio:        document.getElementById('f-inicio').value || null,
+        data_fim:           document.getElementById('f-fim').value    || null,
         objeto,
-        status:         'pendente',
-        criado_por:     sessao.user.id,
+        campos_especificos: camposEsp,
+        status:             'pendente',
+        criado_por:         sessao.user.id,
       }).select().single());
     }
-
     if (error) throw new Error(error.message);
 
     // 2. Enviar documentos ao Drive (se houver)
@@ -1009,6 +1358,7 @@ function editarSolicitacao(id) {
   document.getElementById('form-titulo').textContent = 'Editar solicitação';
   document.getElementById('btn-salvar').textContent  = 'Salvar alterações';
   onTipoChange();
+  preencherCamposEspecificos(s.campos_especificos);
   document.getElementById('form-card').style.display = 'block';
   document.getElementById('form-card').scrollIntoView({ behavior: 'smooth' });
 }
