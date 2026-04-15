@@ -2068,14 +2068,33 @@ let _contatosFornecedor = [];
 async function carregarContatosFornecedor(fornecedorId) {
   if (!fornecedorId) { _contatosFornecedor = []; return; }
   try {
-    const [{ data: socios }, { data: contatos }] = await Promise.all([
-      sb.from('fornecedor_socios').select('id,nome,cpf_cnpj,email,telefone').eq('fornecedor_id', fornecedorId),
+    const [{ data: forn }, { data: socios }, { data: contatos }] = await Promise.all([
+      sb.from('fornecedores').select('id,razao_social,cpf_cnpj,email,telefone,tipo_pessoa').eq('id', fornecedorId).single(),
+      sb.from('fornecedor_socios').select('id,nome,cpf_cnpj_socio,email,telefone').eq('fornecedor_id', fornecedorId),
       sb.from('fornecedor_contatos').select('id,nome,cargo,email,telefone').eq('fornecedor_id', fornecedorId),
     ]);
-    _contatosFornecedor = [
-      ...(socios   || []).map(s  => ({ ...s,  origem: 'socio',   label: s.nome  + ' (S\u00f3cio)' })),
-      ...(contatos || []).map(ct => ({ ...ct, origem: 'contato', label: ct.nome + (ct.cargo ? ' \u2014 ' + ct.cargo : '') })),
-    ];
+    _contatosFornecedor = [];
+    // Pessoa física — o próprio fornecedor é o signatário natural
+    if (forn && (forn.tipo_pessoa === 'PF' || forn.tipo_pessoa === 'fisica')) {
+      _contatosFornecedor.push({
+        id: 'pf-' + forn.id, origem: 'pf',
+        nome: forn.razao_social, cpf_cnpj: forn.cpf_cnpj,
+        email: forn.email, telefone: forn.telefone,
+        label: forn.razao_social + ' (Pessoa Física)',
+      });
+    }
+    // Sócios
+    (socios || []).forEach(function(s) {
+      _contatosFornecedor.push({ id: s.id, origem: 'socio', nome: s.nome,
+        cpf_cnpj: s.cpf_cnpj_socio, email: s.email, telefone: s.telefone,
+        label: s.nome + ' (Sócio)' });
+    });
+    // Contatos
+    (contatos || []).forEach(function(ct) {
+      _contatosFornecedor.push({ id: ct.id, origem: 'contato', nome: ct.nome,
+        cpf_cnpj: null, email: ct.email, telefone: ct.telefone,
+        label: ct.nome + (ct.cargo ? ' — ' + ct.cargo : '') });
+    });
   } catch(e) { _contatosFornecedor = []; }
 }
 
