@@ -516,7 +516,7 @@ async function carregarFornecedoresSelect() {
 // ══════════════════════════════════════════════════════════
 async function carregar() {
   let q = sb.from('solicitacoes_contratos')
-    .select('*,fornecedores(razao_social),criado_por_usr:usuarios!solicitacoes_contratos_criado_por_fkey(nome)')
+    .select('*,fornecedores(razao_social),criado_por_usr:usuarios!solicitacoes_contratos_criado_por_fkey(nome),editado_por_usr:usuarios!solicitacoes_contratos_editado_por_fkey(nome)')
     .order('criado_em', { ascending: false });
   if (obraId) q = q.eq('obra_id', obraId);
   const { data, error } = await q;
@@ -638,8 +638,22 @@ async function abrirDetalhe(id) {
     carregarDocsModal(s.id);
   }
 
-  document.getElementById('modal-audit').innerHTML =
-    `Solicitado por <strong>${s.criado_por_usr?.nome || '—'}</strong> em ${formatarData(s.criado_em)}`;
+  // Montar info de auditoria
+  const fmtDtHora = iso => {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  };
+  let auditLines = [
+    `Solicitado por <strong>${s.criado_por_usr?.nome || '—'}</strong> em ${fmtDtHora(s.criado_em)}`
+  ];
+  if (s.status === 'aprovado' && s.editado_por_usr?.nome) {
+    auditLines.push(`✅ Aprovado por <strong>${s.editado_por_usr.nome}</strong> em ${fmtDtHora(s.editado_em || s.updated_at)}`);
+  } else if (s.status === 'reprovado' && s.editado_por_usr?.nome) {
+    auditLines.push(`❌ Reprovado por <strong>${s.editado_por_usr.nome}</strong> em ${fmtDtHora(s.editado_em || s.updated_at)}`);
+  } else if (s.status === 'em_elaboracao' && s.editado_por_usr?.nome) {
+    auditLines.push(`📝 Em elaboração — atualizado por <strong>${s.editado_por_usr.nome}</strong> em ${fmtDtHora(s.editado_em || s.updated_at)}`);
+  }
+  document.getElementById('modal-audit').innerHTML = auditLines.join('<br>');
 
   // ── Ações ──
   const actions = document.getElementById('modal-actions');
@@ -962,7 +976,7 @@ async function confirmarReprovar() {
 
 async function mudarStatus(id, novoStatus, motivo = null) {
   const { error } = await sb.from('solicitacoes_contratos')
-    .update({ status: novoStatus, editado_por: sessao.user.id })
+    .update({ status: novoStatus, editado_por: sessao.user.id, editado_em: new Date().toISOString() })
     .eq('id', id);
   if (error) { mostrarToast('Erro ao atualizar status.', 'erro'); return; }
 
