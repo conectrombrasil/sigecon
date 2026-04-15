@@ -559,7 +559,11 @@ body.light .spinner{border-color:rgba(26,51,82,0.15);border-top-color:var(--blue
       <div class="fg"><label>Nome *</label><input type="text" id="socio-nome" placeholder="Nome completo"/></div>
       <div class="fg"><label>Qualificação</label><input type="text" id="socio-qualificacao" placeholder="Sócio, Diretor..."/></div>
     </div>
-    <div class="fg" style="margin-bottom:0"><label>CPF / CNPJ do sócio</label><input type="text" id="socio-cpf-cnpj" placeholder="000.000.000-00"/></div>
+    <div class="fg"><label>CPF / CNPJ do sócio</label><input type="text" id="socio-cpf-cnpj" placeholder="000.000.000-00"/></div>
+    <div class="frow" style="margin-bottom:0">
+      <div class="fg"><label>E-mail</label><input type="email" id="socio-email" placeholder="email@empresa.com"/></div>
+      <div class="fg"><label>Telefone</label><input type="text" id="socio-telefone" placeholder="(00) 9 0000-0000"/></div>
+    </div>
     <div class="mmodal-actions">
       <button class="btn-cancelar" onclick="fecharModalSocio()">Cancelar</button>
       <button class="btn-salvar" onclick="salvarSocio()">Salvar</button>
@@ -989,17 +993,19 @@ async function recarregarSocios(){
   const lista=data||[];
   if(!lista.length){document.getElementById('socios-lista').innerHTML='<div style="text-align:center;padding:16px;color:var(--text3);font-size:13px">Nenhum sócio cadastrado.</div>';return;}
   document.getElementById('socios-lista').innerHTML=
-    '<table class="mtable"><thead><tr><th>Nome</th><th>Qualificação</th><th>CPF/CNPJ</th><th>Docs</th><th></th></tr></thead><tbody>' +
+    '<table class="mtable"><thead><tr><th>Nome</th><th>Qualificação</th><th>CPF/CNPJ</th><th>E-mail</th><th>Telefone</th><th>Docs</th><th></th></tr></thead><tbody>' +
     lista.map(s=>
       '<tr>' +
       '<td>'+s.nome+'</td>' +
       '<td class="td2">'+(s.qualificacao||'')+'</td>' +
       '<td class="td2">'+(s.cpf_cnpj_socio||'')+'</td>' +
+      '<td class="td2">'+(s.email||'')+'</td>' +
+      '<td class="td2">'+(s.telefone||'')+'</td>' +
       '<td><button class="btn-icon" onclick="abrirModalDocSocio(\''+s.id+'\',\''+s.nome.replace(/'/g,"'")+'\')">📎 Docs</button></td>' +
       '<td style="display:flex;gap:4px"><button class="btn-icon" onclick="editarSocio(\''+s.id+'\')">Editar</button><button class="btn-icon danger" onclick="excluirSocio(\''+s.id+'\')">Excluir</button></td>' +
       '</tr>' +
       '<tr id="socio-docs-row-'+s.id+'">' +
-      '<td colspan="5" style="padding:2px 0 10px 12px"><div id="socio-docs-'+s.id+'" style="font-size:12px;color:var(--text3)">—</div></td>' +
+      '<td colspan="7" style="padding:2px 0 10px 12px"><div id="socio-docs-'+s.id+'" style="font-size:12px;color:var(--text3)">—</div></td>' +
       '</tr>'
     ).join('') +
     '</tbody></table>';
@@ -1016,6 +1022,8 @@ function abrirModalSocio(){
   document.getElementById('socio-nome').value='';
   document.getElementById('socio-qualificacao').value='';
   document.getElementById('socio-cpf-cnpj').value='';
+  document.getElementById('socio-email').value='';
+  document.getElementById('socio-telefone').value='';
   document.getElementById('modal-socio-titulo').textContent='Novo sócio';
   document.getElementById('modal-socio').classList.add('aberto');
 }
@@ -1027,6 +1035,8 @@ async function editarSocio(id){
   document.getElementById('socio-nome').value=s.nome||'';
   document.getElementById('socio-qualificacao').value=s.qualificacao||'';
   document.getElementById('socio-cpf-cnpj').value=s.cpf_cnpj_socio||'';
+  document.getElementById('socio-email').value=s.email||'';
+  document.getElementById('socio-telefone').value=s.telefone||'';
   document.getElementById('modal-socio-titulo').textContent='Editar sócio';
   document.getElementById('modal-socio').classList.add('aberto');
 }
@@ -1036,7 +1046,7 @@ async function salvarSocio(){
   const nome=document.getElementById('socio-nome').value.trim();
   const id=document.getElementById('socio-id').value;
   if(!nome){alert('Informe o nome.');return;}
-  const dados={nome,qualificacao:document.getElementById('socio-qualificacao').value.trim()||null,cpf_cnpj_socio:document.getElementById('socio-cpf-cnpj').value.trim()||null};
+  const dados={nome,qualificacao:document.getElementById('socio-qualificacao').value.trim()||null,cpf_cnpj_socio:document.getElementById('socio-cpf-cnpj').value.trim()||null,email:document.getElementById('socio-email').value.trim()||null,telefone:document.getElementById('socio-telefone').value.trim()||null};
   let error;
   if(id){
     ({error}=await sb.from('fornecedor_socios').update({...dados,editado_por:sessao.user.id}).eq('id',id));
